@@ -1,0 +1,232 @@
+.form-group{
+	margin-bottom: 15px;
+	width: 100%;
+	float: left;
+}
+
+#myprefix-preview-image-popup{
+	min-width: 150px;
+	min-height: 150px;
+}
+#myprefix-preview-image-popup-homepage{
+	min-width: 150px;
+	min-height: 150px;
+}
+.dsmart-form .form-group label{
+	min-width: 100px;
+	display: block;
+}
+.dsmart-form .form-group input,.dsmart-form .form-group select{
+	max-width: 300px;
+	display: inline-block;
+}
+.dsmart-form .form-group textarea{
+	max-width: 600px;
+	display: block;
+	margin-top: 10px;
+}
+.timepicker-group span{
+	margin: 0 10px;
+	line-height: 28px;
+	display: inline-block;
+}
+.dsmart-form .form-group.timepicker-group label{
+	line-height: 28px;
+}
+p.dsmart-error{
+	color: #f30;
+	margin-bottom: 10px;
+}
+p.dsmart-success{
+	color: #17c51e;
+	margin-bottom: 10px;
+}
+span.day-of-week{
+	min-width: 100px;
+}
+.dsmart-form h4{
+	margin-top: 0;
+	margin-bottom: 10px;
+}
+.dsmart-form tr.hidden-field{
+	display: none !important;
+}
+.table-custom-date th{
+	width: 200px;
+}
+.table-custom-date tr td{
+	text-align: center;
+}
+.ds-logo-img{
+	display: block;
+}
+.ds-logo-img img{
+	max-width: 150px;
+}
+.radio-wrap label{
+	margin-right: 5px;	
+}
+.dsmart-form .form-group .radio-wrap label{
+	display: inline-block;
+	min-width: initial;
+}
+.dsmart-form .form-group .radio-wrap{
+	margin-bottom: 10px;
+}
+.acf-table{
+	width: 100%;
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+.acf-table th{
+	background: #ddd;
+    min-width: 20px;
+    height: 40px;
+    text-align: left;
+    padding: 5px;
+}
+.remove-td{
+	width: 30px;
+	text-align: center;
+}
+/*#product-info > tbody > tr > td:first-child{
+	width: 150px;
+}*/
+.acf-table th:not(:last-child){
+	border-right: 1px solid #fff;
+}
+.acf-table td{
+	padding: 5px;
+}
+.acf-table label{
+	display: block;
+}
+.acf-table label:not(:last-child){
+	margin-bottom: 5px;
+}
+#orders-metabox table{
+    font-size: 14px;
+    line-height: 20px;
+}
+.cart-variable{
+    padding: 5px;
+    margin-top: 5px;
+    background-color: #f8f5f2;
+}
+.cart-variable .item:not(:last-child) {
+    margin-bottom: 10px;
+}
+.cart-variable h5 {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 600;
+    margin: 0;
+}
+.cart-variable p, .cart-variable ul {
+    font-size: 18px;
+    line-height: 24px;
+    margin: 0;
+}
+.cart-variable ul {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0;
+}
+ .dsmart-title {
+    font-size: 18px;
+    line-height: 24px;
+    font-weight: 500;
+    margin: 5px 0;
+}
+#orders-metabox input, #orders-metabox select{
+	font-size: 14px;
+}
+#discount-group label,#discount-group-2 label{
+	margin-bottom: 5px;
+}
+.add-time-form,.add-time-form-2{
+	width: 300px;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	margin-left: -150px;
+	margin-top: -74px;
+	background-color: #fff;
+	display: none;
+	padding: 10px;
+}
+.add-time-form input,.add-time-form-2 input{
+	width: 100%;
+	margin-bottom: 5px;
+}
+.add-time-form h4,.add-time-form-2 h4{
+	text-align: center;
+	margin: 0 0 5px;
+	font: 16px;
+	line-height: 22px;
+}
+.list-shipping-fee .fee-item{
+	margin-bottom: 5px;
+}
+.list-method .method-item{
+	margin-bottom: 5px;
+}
+.remove-row2,.remove-row3{
+	display: inline-block;
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	color: #fff;
+	background-color: #f30;
+	cursor: pointer;
+}
+.ds-list-tab li{
+	display: inline-block;
+	margin-right: 10px;
+	margin-bottom: 10px;
+}
+.ds-list-tab li a{
+	display: inline-block;
+	padding:  5px 10px;
+	background-color: #999;
+	color: #000;
+	text-decoration: none;
+}
+.ds-list-tab li a:hover,.ds-list-tab li.active a{
+	background-color: #000;
+	color: #fff;
+}
+.tab-content{
+	display: none;
+}
+.tab-content.active{
+	display: block;
+}
+.list-tax-date .item-date{
+	margin-bottom: 5px;
+}
+.list-tax-date .item-date select,.list-tax-date .item-date input{
+	margin-right: 5px;
+	max-width: 150px;
+}
+.list-tax-date .item-date span{
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	text-align: center;
+	border: 1px solid #999;
+	cursor: pointer;
+	display: inline-block;
+}
+.column-username img{
+	width: 32px !important;
+	height: auto !important;
+}
+.list-shipping-fee-heading{
+	margin-bottom: 5px;
+}
+.list-shipping-fee-heading .a1{
+	width: 300px;
+	display: inline-block;
+}

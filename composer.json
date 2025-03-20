@@ -1,0 +1,6 @@
+{
+    "require": {
+        "paypal/merchant-sdk-php": "^3.12",
+        "paypal/paypal-checkout-sdk": "^1.0"
+    }
+}

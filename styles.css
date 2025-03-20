@@ -1,0 +1,11 @@
+@font-face{
+    font-family:fontello;
+    src:url(fonts/fontello.eot?74446509);
+    src:url(fonts/fontello.eot?74446509#iefix) format("embedded-opentype"),
+    url(fonts/fontello.woff?74446509) format("woff"),
+    url(fonts/fontello.ttf?74446509) format("truetype"),
+    url(fonts/fontello.svg#fontello?74446509) format("svg")
+}
+a:hover{
+	color: #50aecc !important;
+}
