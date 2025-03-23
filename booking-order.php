@@ -2006,7 +2006,7 @@ function send_mail_after_order($order_id)
         $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Bestellnummer: </b>' . $second_order_number . '</p>';
     }
     $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Name: </b>' . $customer_name1 . '</p> <p style="line-height: 1.3;margin: 0;"><b>Vorname: </b>' . $customer_name2 . '</p> <p style="line-height: 1.3;margin: 0;"><b>Email: </b>' . $customer_email . '</p> <p style="line-height: 1.3;margin: 0;"><b>Etage: </b>' . $customer_etage . '</p> <p style="line-height: 1.3;margin: 0;"><b>Postleitzahl: </b>' . $customer_zipcode . '</p> <p style="line-height: 1.3;margin: 0;"><b>Telefonnummer: </b>' . $customer_phone . '</p>';
-    $html_file .= '<p style="line-height: 1.3;margin: 0;><b>Bewirtungsbeleg als Bon: </b>' . $bab_text . '</p>';
+    $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Bewirtungsbeleg als Bon: </b>' . $bab_text . '</p>';
     $html_file .= '<p style="line-height: 1.3;margin: 0;"></b>Alternative Rechnungsadresse: </b>' . $ar_text . '</p>';
     if ($ar['ar'] == 1) {
         $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Anrede:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_prefix . '</p>';
