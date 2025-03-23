@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 5.1.16
+ * Version: 1.0.16
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -454,7 +454,7 @@ function ds_price_format_text($price)
 }
 function ds_price_format_text_with_symbol($price, $symbol = null)
 {
-    $price = ds_price_symbol($symbol) . ' ' . number_format($price, 2, '.', ' ');
+    $price =  number_format($price, 2, '.', ' ') . ' ' .  ds_price_symbol($symbol);
     return $price;
 }
 function cs_ds_price_format_text_with_symbol($price, $symbol = null)
@@ -1890,7 +1890,7 @@ function send_mail_after_order($order_id)
             }
             else
             {
-                $data_item .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>' . $item['quantity'] . 'x ' . $item['title'] . '</b> - ' . ds_price_format_text_with_symbol($item['price'], $currency) . '</p>';
+                $data_item .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>' . $item['quantity'] . 'x ' . $item['title'] . '</b> ' . ds_price_format_text_with_symbol($item['price'], $currency) . '</p>';
             }
             
             if ($isExtra || $isVariable || $isSidedish) :
@@ -2006,6 +2006,17 @@ function send_mail_after_order($order_id)
         $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Bestellnummer: </b>' . $second_order_number . '</p>';
     }
     $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Name: </b>' . $customer_name1 . '</p> <p style="line-height: 1.3;margin: 0;"><b>Vorname: </b>' . $customer_name2 . '</p> <p style="line-height: 1.3;margin: 0;"><b>Email: </b>' . $customer_email . '</p> <p style="line-height: 1.3;margin: 0;"><b>Etage: </b>' . $customer_etage . '</p> <p style="line-height: 1.3;margin: 0;"><b>Postleitzahl: </b>' . $customer_zipcode . '</p> <p style="line-height: 1.3;margin: 0;"><b>Telefonnummer: </b>' . $customer_phone . '</p> </div>';
+    $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;">Bewirtungsbeleg als Bon:<b>' . $bab_text . '</b></p>';
+    $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;">Alternative Rechnungsadresse:<b>' . $ar_text . '</b></p>';
+    if ($ar['ar'] == 1) {
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Anrede:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_prefix . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Vorname:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_first_name . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Nachname:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_last_name . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Firma:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_company . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>PLZ:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_zipcode . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Stadt:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_city . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Straße:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_street . '</p>';
+    }
     $html_file .= '<div style="margin-bottom: 10px;padding-bottom: 10px;border-bottom: 1px dashed #000;">';
     $html_file .= '<h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">Versandart:</h3>';
     if ($shipping_method == "shipping") {
@@ -2034,17 +2045,6 @@ function send_mail_after_order($order_id)
     $html_file .= '</div>';
 
     $html_file .= '<div style="margin-bottom: 10px;padding-bottom: 10px;border-bottom: 1px dashed #000;">';
-    $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;">Bewirtungsbeleg als Bon:<b>' . $bab_text . '</b></p>';
-    $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;">Alternative Rechnungsadresse:<b>' . $ar_text . '</b></p>';
-    if ($ar['ar'] == 1) {
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Anrede:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_prefix . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Vorname:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_first_name . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Nachname:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_last_name . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Firma:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_company . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>PLZ:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_zipcode . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Stadt:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_city . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Straße:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_street . '</p>';
-    }
     $html .= '</div>';
 
     $html_file .= '<div style="margin-bottom: 0;padding-bottom: 0;border-bottom: none;">';
