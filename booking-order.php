@@ -2009,13 +2009,13 @@ function send_mail_after_order($order_id)
     $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Bewirtungsbeleg als Bon: </b>' . $bab_text . '</p>';
     $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Alternative Rechnungsadresse: </b>' . $ar_text . '</p>';
     if ($ar['ar'] == 1) {
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Anrede:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_prefix . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Vorname:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_first_name . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Nachname:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_last_name . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Firma:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_company . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>PLZ:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_zipcode . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Stadt:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_city . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Straße:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $r_street . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Anrede: </b>' . $r_prefix . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Vorname: </b>' . $r_first_name . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Nachname: </b>' . $r_last_name . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Firma: </b>' . $r_company . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>PLZ: </b>' . $r_zipcode . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Stadt: </b>' . $r_city . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Straße: </b>' . $r_street . '</p>';
     }
     $html_file .= '</div>';
     $html_file .= '<div style="margin-bottom: 10px;padding-bottom: 10px;border-bottom: 1px dashed #000;">';
