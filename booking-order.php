@@ -1571,6 +1571,7 @@ function send_mail_after_order($order_id)
     $user_latitude = dsmart_field('user_latitude', $order_id);
     $user_longitude = dsmart_field('user_longitude', $order_id);
     $user_time = dsmart_field('user_time', $order_id);
+    $user_date = dsmart_field('user_date', $order_id);
     $user_delivery_time = dsmart_field('user_delivery_time', $order_id);
     $user_delivery_date = dsmart_field('user_delivery_date', $order_id);
     $shipping_fee = dsmart_field('shipping_fee', $order_id);
@@ -3284,7 +3285,7 @@ function create_new_order($data, $status = 'processing', $transaction_id = null)
             $has_discount = is_discount_time($user_delivery_time, $user_delivery_date, $shipping_method);
         } else {
             $user_time = $shipping_info['time'];
-            $user_date = date("dd.mm.YYYY");
+            $user_date = date("d.m.Y");
             $has_discount = is_discount_time($user_time, null, $shipping_method);
         }
         if (isset($_COOKIE['coupon']) && $_COOKIE['coupon'] != "") {
