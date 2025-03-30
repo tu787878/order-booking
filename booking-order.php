@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.0.16
+ * Version: 1.1.16
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -2039,6 +2039,7 @@ function send_mail_after_order($order_id)
         }
         $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_delivery_time . '</p>';
     } else {
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Tag:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $user_date . '</p>';
         $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit: </b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_time . '</p>';
     }
     if ($more_additional != "")
@@ -3271,6 +3272,7 @@ function create_new_order($data, $status = 'processing', $transaction_id = null)
         $user_latitude = "";
         $user_longitude = "";
         $user_time = "";
+        $user_date = "";
         $shop_id = $shipping_info['shop'];
         add_post_meta($order_id, 'shop_id', $shop_id);
         if ($shipping_method == "shipping") {
@@ -3282,6 +3284,7 @@ function create_new_order($data, $status = 'processing', $transaction_id = null)
             $has_discount = is_discount_time($user_delivery_time, $user_delivery_date, $shipping_method);
         } else {
             $user_time = $shipping_info['time'];
+            $user_date = date("dd.mm.YYYY");
             $has_discount = is_discount_time($user_time, null, $shipping_method);
         }
         if (isset($_COOKIE['coupon']) && $_COOKIE['coupon'] != "") {
@@ -3308,6 +3311,7 @@ function create_new_order($data, $status = 'processing', $transaction_id = null)
                 add_post_meta($order_id, 'user_longitude', $user_longitude);
             }
             add_post_meta($order_id, 'user_time', $user_time);
+            add_post_meta($order_id, 'user_date', $user_date);
             add_post_meta($order_id, 'shipping_fee', $shipping_fee);
             add_post_meta($order_id, 'user_delivery_time', $user_delivery_time);
             add_post_meta($order_id, 'user_delivery_date', $user_delivery_date);
