@@ -218,8 +218,8 @@ jQuery(document).ready(function($){
 
 	$(".dsmart-form .table-custom-date .import-holiday").on("click",function(){
 		var parent = $(this).parent().parent();
-		let year = $('select[name="holiday_year"]').find(":selected").val();
-		let region = $('select[name="holiday_region"]').find(":selected").val();
+		let year = parent.find('select[name="holiday_year"]').find(":selected").val();
+		let region = parent.find('select[name="holiday_region"]').find(":selected").val();
 		console.log(parent);
 		$.get( "https://digidates.de/api/v1/germanpublicholidays?year="+year+"&region=" + region, function( data ) {
 			
