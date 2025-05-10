@@ -226,6 +226,20 @@ function general_booking_setting()
 		} else {
 			$dsmart_method_direct = '';
 		}
+
+		if (isset($_POST['dsmart_delivery_time_step']) && $_POST['dsmart_delivery_time_step'] != "") {
+			$dsmart_delivery_time_step = $_POST['dsmart_delivery_time_step'];
+		} else {
+			$dsmart_delivery_time_step = '15';
+		}
+
+		if (isset($_POST['dsmart_takeaway_time_step']) && $_POST['dsmart_takeaway_time_step'] != "") {
+			$dsmart_takeaway_time_step = $_POST['dsmart_takeaway_time_step'];
+		} else {
+			$dsmart_takeaway_time_step = '15';
+		}
+
+		
 		$dsmart_thankyou_text = stripslashes_deep($_POST['dsmart_thankyou_text']);
 		$dsmart_term_text = stripslashes_deep($_POST['dsmart_term_text']);
 		$dsmart_cart_text = stripslashes_deep($_POST['dsmart_cart_text']);
@@ -448,6 +462,8 @@ function general_booking_setting()
 		//=======================================================
 		update_option('dsmart_method_direct', $dsmart_method_direct, 'yes');
 		update_option('dsmart_method_ship', $dsmart_method_ship, 'yes');
+		update_option('dsmart_delivery_time_step', $dsmart_delivery_time_step, 'yes');
+		update_option('dsmart_takeaway_time_step', $dsmart_takeaway_time_step, 'yes');
 
 
 		// get distance between shop and customer
@@ -723,10 +739,13 @@ function general_booking_setting()
 	$dsmart_buynow = get_option('dsmart_buynow');
 	$dsmart_stock = get_option('dsmart_stock');
 
+
 	// shipping method
 	//=======================================================
 	$dsmart_method_ship = get_option('dsmart_method_ship');
 	$dsmart_method_direct = get_option('dsmart_method_direct');
+	$dsmart_delivery_time_step = get_option('dsmart_delivery_time_step', '15');
+	$dsmart_takeaway_time_step = get_option('dsmart_takeaway_time_step', '15');
 
 	// payment method
 	//=======================================================
