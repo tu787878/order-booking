@@ -191,3 +191,37 @@ function my_author_filter_results($query){
     }
 }
 add_action('pre_get_posts','my_author_filter_results');
+
+function my_orders_filter(){
+        $screen = get_current_screen();
+		global $wp_query;
+		if ($screen->post_type == 'orders') {	
+            $method = "";		
+			if(isset($_GET['method_filter'])){
+                $method = $_GET['method_filter'];
+            }
+			?>
+
+			<select name="method_filter">
+                        <option value="" <?php if($method == ""){echo 'selected';} ?>><?php _e("Alle Zahlungsmethode") ?></option>
+						<option value="paypal" <?php if($method == "paypal"){echo 'selected';} ?>><?php _e("Paypal") ?></option>
+						<option value="klarna" <?php if($method == "klarna"){echo 'selected';} ?>><?php _e("Klarna") ?></option>
+						<option value="cash" <?php if($method == "cash"){echo 'selected';} ?>><?php _e("Barzahlung") ?></option>
+			</select>	
+			<?php
+		}
+}
+add_action('restrict_manage_posts','my_orders_filter');
+
+// cash, paypal, klarna
+function my_orders_filter_results($query){
+    $screen = get_current_screen();
+    global $post_type; 
+    if ($screen->post_type == 'orders') {
+        if(isset($_GET['method_filter']) && $_GET['method_filter'] !== ""){
+            $query->query_vars['meta_key'] = 'method';
+            $query->query_vars['meta_value'] = $_GET['method_filter'];
+        }
+    }
+}
+add_action('pre_get_posts','my_orders_filter_results');
