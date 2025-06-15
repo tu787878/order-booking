@@ -1139,7 +1139,7 @@ textarea.dsmart-field{
     margin-bottom: 15px;
 }
 .dsmart-section label{
-    color: #000 !important;
+    color: #000;
 }
 .dsmart-place-order{
     text-align: right;
@@ -1389,9 +1389,9 @@ span.required-symbol{
 .dsmart-table table th,.dsmart-table table td, table.dsmart-table th,table.dsmart-table td{
     border:none;
     border-top: 1px solid #ccc;
-    color: #000 !important;
+    color: #000;
 }
-.dark-style .dsmart-table table td{
+.dark-style table.dsmart-table td{
     color: #fff !important;
 }
 table.dsmart-table tfoot td,.dsmart-table table tfoot td{
@@ -1747,6 +1747,9 @@ body.dark-style .cart-page h2,body.dark-style .order_page .oder_infor #oder_tabl
     color: #fff;
 }
 body.dark-style .dsmart-section label,body.dark-style .dsmart-section h3,body.dark-style .dsmart-method label{
+    color: #fff !important;
+}
+body.dark-style .vat-text{
     color: #fff !important;
 }
 body.dark-style .dsmart-terms label a,body.dark-style .ds-thankyou p a{
