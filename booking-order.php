@@ -1690,11 +1690,11 @@ function send_mail_after_order($order_id)
                     font-size: 14pt;
                     line-height: 20pt;
                 }
-                 .dsmart-title{
+                .dsmart-title{
                     margin: 0;
                     font-size: 18pt;
                     line-height: 24pt;
-                 }
+                }
            </style>
        </head>
        <body>";
@@ -2031,18 +2031,8 @@ function send_mail_after_order($order_id)
     }
     $html_file .= '</div>';
     $html_file .= '<div style="margin-bottom: 10px;padding-bottom: 10px;border-bottom: 1px dashed #000;">';
-    if ($shipping_method == "shipping") {
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Lieferanschrift:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $user_location . '</p>';
-        if ($order_date == $user_delivery_date) {
-            $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Tag:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $user_delivery_date . '</p>';
-        } else {
-            $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Tag: <span style="color:#000;"></b></p><p style="line-height: 1.3;margin: 0;text-align: center;">ACHTUNG++' . $user_delivery_date . '++ACHTUNG</p>';
-        }
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_delivery_time . '</p>';
-    } else {
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Tag:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $user_date . '</p>';
-        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit: </b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_time . '</p>';
-    }
+    $order_time_info = order_time_info($shipping_method, $user_location, $order_date, $user_delivery_date, $user_delivery_time, $user_date, $user_time);
+    $html_file .= $order_time_info;
     if ($more_additional != "")
         $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Bestellnotiz:</b></p> <p style="line-height: 1.3;margin: 0;text-align: center;"><b> ' . $more_additional . '</b></p>';
     $html_file .= '</div>';
@@ -2232,7 +2222,7 @@ function send_mail_after_order($order_id)
                     $data_pool .= '</div>';
                 }
             }
-            $attachments[] = create_pool($pool, $random_val, $i++, $total_pool, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool);
+            $attachments[] = create_pool($pool, $random_val, $i++, $total_pool, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info);
         }
     }
 
@@ -2253,14 +2243,30 @@ function send_mail_after_order($order_id)
     }
 }
 
-function create_pool($pool, $order_id, $index, $total, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool)
+function order_time_info($shipping_method, $user_location, $order_date, $user_delivery_date, $user_delivery_time, $user_date, $user_time){
+    if ($shipping_method == "shipping") {
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Lieferanschrift:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $user_location . '</p>';
+        if ($order_date == $user_delivery_date) {
+            $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Tag:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $user_delivery_date . '</p>';
+        } else {
+            $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Tag: <span style="color:#000;"></b></p><p style="line-height: 1.3;margin: 0;text-align: center;">ACHTUNG++' . $user_delivery_date . '++ACHTUNG</p>';
+        }
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_delivery_time . '</p>';
+    } else {
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Tag:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $user_date . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit: </b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_time . '</p>';
+    }
+    return $html_file;
+}
+
+function create_pool($pool, $order_id, $index, $total, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info)
 {
-$html_file = '<!DOCTYPE html> <html style="margin: 0;padding: 0;"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> </head> <body style="padding: 0px 15px 0px 15px;"> <div style="margin-bottom: 10px;padding-bottom: 10px;border-bottom: 1px dashed #000;"> <h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">'. $pool .' ('. $index .'/'. $total .')</h3>';
+    $html_file = '<!DOCTYPE html> <html style="margin: 0;padding: 0;"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> </head> <body style="padding: 0px 15px 0px 15px;"> <div style="margin-bottom: 10px;padding-bottom: 10px;border-bottom: 1px dashed #000;"> <h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">'. $pool .' ('. $index .'/'. $total .')</h3>';
     if ($show_second_number == "1") {
         $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Bestellnummer: </b>' . $second_order_number . '</p>';
     }
     $html_file .= '<p style="line-height: 1.3;margin: 0;"><b>Name: </b>' . $customer_name1 . '</p> <p style="line-height: 1.3;margin: 0;"><b>Vorname: </b>' . $customer_name2 . '</p></div>';
-
+    $html_file .= $order_time_info;
     $html_file .= '<div style="margin-bottom: 0;margin-top: 10px;padding-bottom: 0;border-bottom: none;">';
     $html_file .= '<h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">Bestellinformationen</h3>';
     $html_file .= '</div>';
