@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.3.18
+ * Version: 1.4.18
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -2097,6 +2097,7 @@ function send_mail_after_order($order_id)
 
 
     if (get_option('enable_pool') == '1') {
+        $order_time_info2 = order_time_info2($shipping_method, $user_location, $order_date, $user_delivery_date, $user_delivery_time, $user_date, $user_time);
         $pools = [];
 		$debug = '';
 		$debug2 = '';
@@ -2222,7 +2223,7 @@ function send_mail_after_order($order_id)
                     $data_pool .= '</div>';
                 }
             }
-            $attachments[] = create_pool($pool, $random_val, $i++, $total_pool, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info);
+            $attachments[] = create_pool($pool, $random_val, $i++, $total_pool, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info2);
         }
     }
 
@@ -2254,6 +2255,15 @@ function order_time_info($shipping_method, $user_location, $order_date, $user_de
         $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_delivery_time . '</p>';
     } else {
         $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Tag:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;">' . $user_date . '</p>';
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit: </b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_time . '</p>';
+    }
+    return $html_file;
+}
+
+function order_time_info2($shipping_method, $user_location, $order_date, $user_delivery_date, $user_delivery_time, $user_date, $user_time){
+    if ($shipping_method == "shipping") {
+        $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit:</b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_delivery_time . '</p>';
+    } else {
         $html_file .= '<p style="line-height: 1.3;margin: 0;text-align: center;"><b>Liefer- / Abholzeit: </b></p><p style="line-height: 1.3;margin: 0;text-align: center;font-size: 30px;">' . $user_time . '</p>';
     }
     return $html_file;
