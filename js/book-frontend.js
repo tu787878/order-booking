@@ -890,8 +890,7 @@ jQuery(document).ready(function ($) {
       $Notify.show();
       $Notify.addClass("dsmart-danger");
       $Notify.text("Bitte vervollständigen Sie alle benötigten Informationen");
-      show_alert("Bitte vervollständigen Sie alle benötigten Informationen");
-      //tempAlert('Bitte vervollständigen Sie alle benötigten Informationen',bookingVars.popup_time);
+      show_alert('Bitte vervollständigen Sie alle benötigten Informationen');
     }
   });
   //caculate distance from customer to shop
@@ -1778,9 +1777,7 @@ jQuery(document).ready(function ($) {
       });
     } else {
       $("#cancel-order .dsmart-modal-notify").show();
-      $("#cancel-order .dsmart-modal-notify").text(
-        "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
-      );
+      $("#cancel-order .dsmart-modal-notify").text("Ein Fehler ist aufgetreten. Bitte versuche es erneut.");
     }
   });
   $("#complete-order .complete-button").on("click", function () {
@@ -1809,9 +1806,7 @@ jQuery(document).ready(function ($) {
       });
     } else {
       $("#complete-order .dsmart-modal-notify").show();
-      $("#complete-order .dsmart-modal-notify").text(
-        "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
-      );
+      $("#complete-order .dsmart-modal-notify").text("Ein Fehler ist aufgetreten. Bitte versuche es erneut.");
     }
   });
   $(".list-product  button.add-to-cart").on("click", function (e) {
@@ -2053,6 +2048,7 @@ jQuery(document).ready(function ($) {
   function ds_price_format_text(price) {
     let currency = bookingVars.currency;
     price = ds_convert_price(price);
+   
     price = currency + " " + number_format(price, 2, ".", " ");
     return price;
   }
@@ -2950,61 +2946,30 @@ function initializeSearch() {
     searchInput.addEventListener('input', function(e) {
         const searchTerm = e.target.value.toLowerCase().trim();
         const productItems = document.querySelectorAll('.menu-meals .item');
-        const categoryHeaders = document.querySelectorAll('.menu-meals h2.change_when_scroll');
 
-        // Track if any products are shown in each category
-        let visibleProducts = new Set();
-
-        // Filter products
+        // Filter products while keeping categories visible
         productItems.forEach(item => {
             const title = item.querySelector('.title').textContent.toLowerCase();
             const excerpt = item.querySelector('.excerpt')?.textContent.toLowerCase() || '';
             const isMatch = title.includes(searchTerm) || excerpt.includes(searchTerm);
             
             item.style.display = isMatch ? '' : 'none';
-            
-            if (isMatch) {
-                // Find the closest category header
-                let categoryHeader = item.closest('div[id^="link_term_"]');
-                if (categoryHeader) {
-                    visibleProducts.add(categoryHeader.id);
-                }
-            }
         });
 
-        // Show/hide category headers based on whether they have visible products
+        // Keep all category headers visible
+        const categoryHeaders = document.querySelectorAll('.menu-meals h2.change_when_scroll');
         categoryHeaders.forEach(header => {
             const categorySection = header.closest('div[id^="link_term_"]');
             if (categorySection) {
-                const shouldShow = visibleProducts.has(categorySection.id);
-                categorySection.style.display = shouldShow ? '' : 'none';
+                categorySection.style.display = ''; // Always show categories
             }
         });
 
-        // Update the mobile category menu visibility
-        updateMobileCategoryMenu(visibleProducts);
-    });
-}
-
-function updateMobileCategoryMenu(visibleCategories) {
-    // Update the popup category menu
-    const popupCategories = document.querySelectorAll('.category_single');
-    popupCategories.forEach(category => {
-        const categoryId = category.getAttribute('onclick')?.match(/\d+/)?.[0];
-        if (categoryId) {
-            const isVisible = visibleCategories.has(`link_term_${categoryId}`);
-            category.style.display = isVisible ? 'table' : 'none';
-        }
-    });
-
-    // Update the sidebar category menu
-    const sidebarCategories = document.querySelectorAll('.big_menu_side');
-    sidebarCategories.forEach(category => {
-        const categoryId = category.id.replace('big_menu_side_', '');
-        if (categoryId) {
-            const isVisible = visibleCategories.has(`link_term_${categoryId}`);
-            category.style.display = isVisible ? '' : 'none';
-        }
+        // Keep all menu categories visible
+        const menuCategories = document.querySelectorAll('.big_menu_side, .category_single');
+        menuCategories.forEach(category => {
+            category.style.display = ''; // Always show menu items
+        });
     });
 }
 
