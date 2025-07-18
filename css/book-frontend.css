@@ -2234,10 +2234,6 @@ body:not(.dark-style) .ds-searchform .cs-btn{
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-.search_icon {
-    margin-left: 10px;
-}
-
 /* Mobile styles */
 @media (max-width: 768px) {
     .outer_search_box {
