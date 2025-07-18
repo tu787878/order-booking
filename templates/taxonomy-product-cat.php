@@ -535,14 +535,7 @@ if (get_option('homepage_popup') === "2"){
                             }
                             ?>
                             <div class="line-logo" style="border-bottom: 1px dotted;margin-top: 15px;"></div>
-                            <div class="input-group">
-                                <input type="text" class="form-control" name="x" id="search" placeholder="Search">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-default" type="button">
-                                        <span class="glyphicon glyphicon-search"></span>
-                                    </button>
-                                </span>
-                            </div>
+                            <input type="text" class="form-control" name="x" id="search" placeholder="Suche">
                         </div>
                     <?php } ?>
                     <div class="menu-categories">
