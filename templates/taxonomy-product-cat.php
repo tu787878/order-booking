@@ -391,7 +391,6 @@ if (get_option('homepage_popup') === "2"){
         <input type="text" 
                class="mobile-search-input" 
                id="mobile_search" 
-               placeholder="Suche"
                oninput="handleSearch(this.value)">
     </div>
 
