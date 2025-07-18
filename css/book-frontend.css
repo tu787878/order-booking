@@ -2273,3 +2273,40 @@ body:not(.dark-style) .ds-searchform .cs-btn{
     border-radius: 4px;
     font-size: 16px;
 }
+
+#search,
+#mobile_search {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+    outline: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#search:focus,
+#mobile_search:focus {
+    border-color: #4a90e2;
+    box-shadow: 0 1px 4px rgba(74,144,226,0.2);
+}
+
+/* Container for desktop search */
+.ds-logo {
+    position: relative;
+}
+
+/* Desktop search input specific styles */
+.ds-logo #search {
+    margin-top: 15px;
+    max-width: 280px; /* Match mobile search width */
+    display: block;
+}
+
+/* Hide desktop search on mobile */
+@media (max-width: 768px) {
+    .ds-logo #search {
+        display: none;
+    }
+}
