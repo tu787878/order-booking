@@ -2975,3 +2975,37 @@ function initializeSearch() {
 
 // Initialize search when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeSearch);
+
+
+// Add this to your book-frontend.js file
+
+function toggle_search_popup() {
+    const popup = document.getElementById("search_popuptext");
+    const input = document.getElementById("mobile_search");
+    popup.classList.toggle("show");
+    if (popup.classList.contains("show")) {
+        input.focus();
+    }
+}
+
+function handleSearch(value) {
+    // Sync the search value with the desktop search input
+    const desktopSearch = document.getElementById("search");
+    if (desktopSearch) {
+        desktopSearch.value = value;
+        // Trigger the search event
+        desktopSearch.dispatchEvent(new Event('input'));
+    }
+}
+
+// Close search popup when clicking outside
+document.addEventListener('click', function(event) {
+    const popup = document.getElementById("search_popuptext");
+    const searchBox = document.querySelector(".outer_search_box");
+    
+    if (popup && searchBox) {
+        if (!popup.contains(event.target) && !searchBox.contains(event.target)) {
+            popup.classList.remove("show");
+        }
+    }
+});

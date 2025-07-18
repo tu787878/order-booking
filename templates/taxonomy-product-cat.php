@@ -380,6 +380,21 @@ if (get_option('homepage_popup') === "2"){
         </div>
 
 
+    <div class="outer_search_box">
+        <div class="current_search_box" style="background: <?php echo $button_color ?> !important;animation: pulse-red 2s infinite;" onclick="toggle_search_popup()">
+            <div class="current_search">Suche</div>
+            <div class="search_icon"><i class="bi bi-search" style="font-size: 20px;color:white"></i></div>
+        </div>
+    </div>
+
+    <div class="search_popuptext" id="search_popuptext">
+        <input type="text" 
+               class="mobile-search-input" 
+               id="mobile_search" 
+               placeholder="Suche"
+               oninput="handleSearch(this.value)">
+    </div>
+
     <div class="dsmart-notify"></div>
     
     <div class="listing-inner">
