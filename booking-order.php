@@ -3,12 +3,35 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.4.18
+ * Version: 1.5.18
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
 define('BOOKING_ORDER_PATH2', plugin_dir_path(__FILE__));
 date_default_timezone_set('Europe/Berlin');
+
+// Restrict search to admins only
+add_action('template_redirect', function() {
+    $is_search_request = is_search() || 
+                        (isset($_GET['s']) && !empty($_GET['s']));
+    
+    if ($is_search_request && !current_user_can('manage_options')) {
+        wp_redirect(home_url());
+        exit;
+    }
+}, 1);
+
+// Hide search form from non-admins
+add_filter('get_search_form', function($form) {
+    return current_user_can('manage_options') ? $form : '';
+});
+
+// Remove search widget for non-admins
+add_action('widgets_init', function() {
+    if (!current_user_can('manage_options')) {
+        unregister_widget('WP_Widget_Search');
+    }
+});
 
 function book_slice_orderby( $query ) {
     if( ! is_admin() )
