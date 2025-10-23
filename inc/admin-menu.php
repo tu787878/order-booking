@@ -1138,6 +1138,9 @@ function general_booking_setting()
 					<div class="form-group">
 						<label><?php _e('Sortierung') ?></label>
 						<select name="dsmart_orderby">
+							<option value="menu_order" <?php if ($dsmart_orderby == "menu_order") {
+														echo 'selected';
+													} ?>><?php _e("Menu order"); ?></option>
 							<option value="date" <?php if ($dsmart_orderby == "date") {
 														echo 'selected';
 													} ?>><?php _e("Date"); ?></option>
