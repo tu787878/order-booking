@@ -1430,6 +1430,10 @@ function check_time_with_time_shop($time, $current_time = null, $current_date = 
     $dsmart_custom_date = get_option('dsmart_custom_date');
     $time_shop_array = array();
     if ($dsmart_custom_date != "" && count($dsmart_custom_date) > 0) {
+        // Sort by 'open' time to ensure chronological gap calculation
+        usort($dsmart_custom_date, function($a, $b) {
+            return strcmp($a['open'], $b['open']);
+        });
         foreach ($dsmart_custom_date as $item) {
             if ($current_date == $item['date']) {
                 $time_shop_array[] = array("open" => $item['open'], "close" => $item['close']);
@@ -2708,6 +2712,10 @@ function get_close_time_shop_nodelay()
     $custom_date = false;
     $check = false;
     if ($dsmart_custom_date != "" && count($dsmart_custom_date) > 0) {
+        // Sort by 'open' time to ensure chronological gap calculation
+        usort($dsmart_custom_date, function($a, $b) {
+            return strcmp($a['open'], $b['open']);
+        });
         foreach ($dsmart_custom_date as $item) {
             if ($current_date == $item['date']) {
                 $time_shop_array[] = array($custom_date_data, $item['open']);
@@ -2776,6 +2784,10 @@ function get_close_time_shop2_nodelay()
     $custom_date = false;
     $check = false;
     if ($dsmart_custom_date != "" && count($dsmart_custom_date) > 0) {
+        // Sort by 'open' time to ensure chronological gap calculation
+        usort($dsmart_custom_date, function($a, $b) {
+            return strcmp($a['open'], $b['open']);
+        });
         foreach ($dsmart_custom_date as $item) {
             if ($current_date == $item['date']) {
                 $time_shop_array[] = array($custom_date_data, $item['open']);
@@ -2944,6 +2956,10 @@ function get_close_time_shop()
     $custom_date = false;
     $check = false;
     if ($dsmart_custom_date != "" && count($dsmart_custom_date) > 0) {
+        // Sort by 'open' time to ensure chronological gap calculation
+        usort($dsmart_custom_date, function($a, $b) {
+            return strcmp($a['open'], $b['open']);
+        });
         foreach ($dsmart_custom_date as $item) {
             if ($current_date == $item['date']) {
                 $time_shop_array[] = array($custom_date_data, $item['open']);
@@ -3020,6 +3036,10 @@ function get_close_time_shop2()
     $custom_date = false;
     $check = false;
     if ($dsmart_custom_date != "" && count($dsmart_custom_date) > 0) {
+        // Sort by 'open' time to ensure chronological gap calculation
+        usort($dsmart_custom_date, function($a, $b) {
+            return strcmp($a['open'], $b['open']);
+        });
         foreach ($dsmart_custom_date as $item) {
             if ($current_date == $item['date']) {
                 $time_shop_array[] = array($custom_date_data, $item['open']);
@@ -3130,6 +3150,10 @@ function get_close_time_shop_all_week()
         $custom_date = false;
         $check = false;
         if ($dsmart_custom_date != "" && count($dsmart_custom_date) > 0) {
+            // Sort by 'open' time to ensure chronological gap calculation
+            usort($dsmart_custom_date, function($a, $b) {
+                return strcmp($a['open'], $b['open']);
+            });
             foreach ($dsmart_custom_date as $item) {
                 if ($current_date == $item['date']) {
                     $time_shop_array[] = array($custom_date_data, $item['open']);

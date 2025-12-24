@@ -1047,6 +1047,10 @@ function check_time_available()
 		$total_all = 0;
 	}
 	if ($dsmart_custom_date != "" && count($dsmart_custom_date) > 0) {
+		// Sort by 'open' time to ensure chronological gap calculation
+		usort($dsmart_custom_date, function($a, $b) {
+			return strcmp($a['open'], $b['open']);
+		});
 		foreach ($dsmart_custom_date as $key => $value) {
 			if ($key == $current_date) {
 				$time_open_shop = $value['open'];
@@ -1060,6 +1064,10 @@ function check_time_available()
 	$closed_time = get_option('closed_time_2');
 	$time_shop_array = array();
 	if ($dsmart_custom_date != "" && count($dsmart_custom_date) > 0) {
+		// Sort by 'open' time to ensure chronological gap calculation
+		usort($dsmart_custom_date, function($a, $b) {
+			return strcmp($a['open'], $b['open']);
+		});
 		foreach ($dsmart_custom_date as $item) {
 			if ($current_date == $item['date']) {
 				$time_shop_array[] = array("open" => $item['open'], "close" => $item['close']);
