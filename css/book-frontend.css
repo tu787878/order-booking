@@ -28,7 +28,6 @@ body.dark-style .current_category_box{
     position: absolute;
     top: 0;
     will-change: transform;
-    padding-right: 100px; /* Space between repetitions */
   }
   .marquee-child:hover {
     animation-play-state: paused !important;
@@ -39,7 +38,6 @@ body.dark-style .current_category_box{
     left: auto;
     animation: none !important;
     text-align: center;
-    padding-right: 0;
     width: auto !important;
   }
   @keyframes marquee-scroll {

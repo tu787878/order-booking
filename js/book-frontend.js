@@ -3015,14 +3015,17 @@ function initializeMarquee() {
     const marqueeParents = document.querySelectorAll('.marquee-parent');
     
     marqueeParents.forEach(function(parent) {
+        // Remove any duplicate/clone elements first
+        const allChildren = parent.querySelectorAll('.marquee-child');
+        if (allChildren.length > 1) {
+            // Keep only the first one, remove the rest
+            for (let i = 1; i < allChildren.length; i++) {
+                allChildren[i].remove();
+            }
+        }
+        
         const marquee = parent.querySelector('.marquee-child');
         if (!marquee) return;
-        
-        // Remove any existing clones
-        const existingClones = parent.querySelectorAll('.marquee-child:not(:first-child)');
-        existingClones.forEach(function(clone) {
-            clone.remove();
-        });
         
         // Get the text content
         const text = marquee.textContent || marquee.innerText;
@@ -3046,23 +3049,19 @@ function initializeMarquee() {
         
         // Only animate if text is wider than container
         if (textWidth > containerWidth) {
-            // Reset styles for animation
+            // Reset styles for animation - single element only, no duplication
             marquee.style.position = 'absolute';
             marquee.style.left = 'auto';
             marquee.style.animation = 'marquee-scroll linear infinite';
             marquee.style.textAlign = 'left';
             marquee.style.width = textWidth + 'px';
+            marquee.classList.remove('no-animate');
             
             // Set animation duration based on text width (adjust speed as needed)
             // Speed: pixels per second (lower = faster)
             const pixelsPerSecond = 50;
             const duration = (textWidth + containerWidth) / pixelsPerSecond;
             marquee.style.animationDuration = duration + 's';
-            
-            // Duplicate text for seamless loop
-            const clone = marquee.cloneNode(true);
-            clone.style.animationDelay = '-' + (textWidth / pixelsPerSecond) + 's';
-            parent.appendChild(clone);
         } else {
             // Text fits, center it instead of animating
             marquee.style.position = 'relative';
