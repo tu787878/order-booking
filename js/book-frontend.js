@@ -3009,3 +3009,82 @@ document.addEventListener('click', function(event) {
         }
     }
 });
+
+// Initialize marquee with dynamic width calculation
+function initializeMarquee() {
+    const marqueeParents = document.querySelectorAll('.marquee-parent');
+    
+    marqueeParents.forEach(function(parent) {
+        const marquee = parent.querySelector('.marquee-child');
+        if (!marquee) return;
+        
+        // Remove any existing clones
+        const existingClones = parent.querySelectorAll('.marquee-child:not(:first-child)');
+        existingClones.forEach(function(clone) {
+            clone.remove();
+        });
+        
+        // Get the text content
+        const text = marquee.textContent || marquee.innerText;
+        if (!text.trim()) return;
+        
+        // Measure the actual width of the text
+        const tempSpan = document.createElement('span');
+        tempSpan.style.visibility = 'hidden';
+        tempSpan.style.position = 'absolute';
+        tempSpan.style.whiteSpace = 'nowrap';
+        tempSpan.style.fontSize = window.getComputedStyle(marquee).fontSize;
+        tempSpan.style.fontFamily = window.getComputedStyle(marquee).fontFamily;
+        tempSpan.style.fontWeight = window.getComputedStyle(marquee).fontWeight;
+        tempSpan.textContent = text;
+        document.body.appendChild(tempSpan);
+        const textWidth = tempSpan.offsetWidth;
+        document.body.removeChild(tempSpan);
+        
+        // Get container width
+        const containerWidth = parent.offsetWidth;
+        
+        // Only animate if text is wider than container
+        if (textWidth > containerWidth) {
+            // Reset styles for animation
+            marquee.style.position = 'absolute';
+            marquee.style.left = 'auto';
+            marquee.style.animation = 'marquee-scroll linear infinite';
+            marquee.style.textAlign = 'left';
+            marquee.style.width = textWidth + 'px';
+            
+            // Set animation duration based on text width (adjust speed as needed)
+            // Speed: pixels per second (lower = faster)
+            const pixelsPerSecond = 50;
+            const duration = (textWidth + containerWidth) / pixelsPerSecond;
+            marquee.style.animationDuration = duration + 's';
+            
+            // Duplicate text for seamless loop
+            const clone = marquee.cloneNode(true);
+            clone.style.animationDelay = '-' + (textWidth / pixelsPerSecond) + 's';
+            parent.appendChild(clone);
+        } else {
+            // Text fits, center it instead of animating
+            marquee.style.position = 'relative';
+            marquee.style.left = 'auto';
+            marquee.style.animation = 'none';
+            marquee.style.textAlign = 'center';
+            marquee.style.width = 'auto';
+            marquee.classList.add('no-animate');
+        }
+    });
+}
+
+// Initialize marquee when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeMarquee);
+} else {
+    initializeMarquee();
+}
+
+// Re-initialize on window resize
+let resizeTimer;
+window.addEventListener('resize', function() {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(initializeMarquee, 250);
+});
