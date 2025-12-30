@@ -3051,8 +3051,7 @@ function initializeMarquee() {
         if (textWidth > containerWidth) {
             // Reset styles for animation - single element only, no duplication
             marquee.style.position = 'absolute';
-            marquee.style.left = 'auto';
-            marquee.style.animation = 'marquee-scroll linear infinite';
+            marquee.style.left = '100%';
             marquee.style.textAlign = 'left';
             marquee.style.width = textWidth + 'px';
             marquee.classList.remove('no-animate');
@@ -3061,7 +3060,7 @@ function initializeMarquee() {
             // Speed: pixels per second (lower = faster)
             const pixelsPerSecond = 50;
             const duration = (textWidth + containerWidth) / pixelsPerSecond;
-            marquee.style.animationDuration = duration + 's';
+            marquee.style.animation = 'marquee-scroll ' + duration + 's linear infinite';
         } else {
             // Text fits, center it instead of animating
             marquee.style.position = 'relative';
@@ -3069,16 +3068,17 @@ function initializeMarquee() {
             marquee.style.animation = 'none';
             marquee.style.textAlign = 'center';
             marquee.style.width = 'auto';
+            marquee.style.transform = 'none';
             marquee.classList.add('no-animate');
         }
     });
 }
 
-// Initialize marquee when DOM is ready
+// Initialize marquee immediately and when DOM is ready
+initializeMarquee();
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeMarquee);
-} else {
-    initializeMarquee();
 }
 
 // Re-initialize on window resize
