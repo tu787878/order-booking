@@ -30,6 +30,7 @@ body.dark-style .current_category_box{
     will-change: transform;
     left: 100%;
     /* Start animation immediately with default values */
+    /* Adjust the duration (15s) to change default speed: lower = faster, higher = slower */
     animation: marquee-scroll 15s linear infinite;
   }
   .marquee-child:hover {

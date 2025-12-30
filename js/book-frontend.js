@@ -3057,8 +3057,9 @@ function initializeMarquee() {
             marquee.classList.remove('no-animate');
             
             // Set animation duration based on text width (adjust speed as needed)
-            // Speed: pixels per second (lower = faster)
-            const pixelsPerSecond = 50;
+            // Speed: pixels per second (lower number = faster, higher number = slower)
+            // Example: 30 = fast, 50 = medium, 80 = slow
+            const pixelsPerSecond = 40;
             const duration = (textWidth + containerWidth) / pixelsPerSecond;
             marquee.style.animation = 'marquee-scroll ' + duration + 's linear infinite';
         } else {
