@@ -8,12 +8,21 @@ use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;*/
 
 // Show thank you message only (no order info)
 if (isset($_GET['ordered']) && $_GET['ordered'] == '1') {
-    $thankyou_text = get_option('dsmart_thankyou_text');
-    if (trim($thankyou_text) == '') {
-        $thankyou_text = __('Vielen Dank. Ihre Bestellung wurde erfolgreich aufgegeben.', 'dsmart');
-    }
+    $shop_page_id = get_page_id_by_template('templates/shop-page.php');
+    $shop_url = $shop_page_id ? get_permalink($shop_page_id) : home_url('/');
+    $button_color = get_option('button_color', '#50aecc');
     get_header();
-    echo '<div class="order_page"><div class="ds-thankyou">' . wp_kses_post($thankyou_text) . '</div></div>';
+    ?>
+    <div class="order_page">
+        <div class="ds-thankyou">
+            <h2><?php _e('Vielen Dank', 'dsmart'); ?></h2>
+            <h2><?php _e('Ihre Bestellung war erfolgreich', 'dsmart'); ?></h2>
+            <p class="ds-thankyou-actions">
+                <a href="<?php echo esc_url($shop_url); ?>" class="dsmart-button" style="background: <?php echo esc_attr($button_color); ?> !important;"><?php _e('Zurück zum Shop', 'dsmart'); ?></a>
+            </p>
+        </div>
+    </div>
+    <?php
     get_footer();
     exit;
 }
