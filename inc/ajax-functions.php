@@ -1823,17 +1823,19 @@ function checkout_cart()
 				} else {
 					setcookie('cart', null, time() - 2592000, '/', NULL, 0);
 					$order_id = create_new_order($checkout_data);
+					$thankyou_page = get_page_id_by_template('templates/template-thankyou.php');
 					echo json_encode(array(
 						'check' => true,
-						'redirect_url' => get_permalink($order_id),
+						'redirect_url' => get_permalink($thankyou_page) . '?ordered=1',
 					));
 				}
 			} else {
 				setcookie('cart', null, time() - 2592000, '/', NULL, 0);
 				$order_id = create_new_order($checkout_data);
+				$thankyou_page = get_page_id_by_template('templates/template-thankyou.php');
 				echo json_encode(array(
 					'check' => true,
-					'redirect_url' => get_permalink($order_id),
+					'redirect_url' => get_permalink($thankyou_page) . '?ordered=1',
 				));
 			}
 		} else {

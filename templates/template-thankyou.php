@@ -5,6 +5,19 @@ use PayPalCheckoutSdk\Core\SandboxEnvironment;
 use PayPalCheckoutSdk\Orders\OrdersCreateRequest;
 use PayPalCheckoutSdk\Orders\OrdersAuthorizeRequest;
 use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;*/
+
+// Show thank you message only (no order info)
+if (isset($_GET['ordered']) && $_GET['ordered'] == '1') {
+    $thankyou_text = get_option('dsmart_thankyou_text');
+    if (trim($thankyou_text) == '') {
+        $thankyou_text = __('Vielen Dank. Ihre Bestellung wurde erfolgreich aufgegeben.', 'dsmart');
+    }
+    get_header();
+    echo '<div class="order_page"><div class="ds-thankyou">' . wp_kses_post($thankyou_text) . '</div></div>';
+    get_footer();
+    exit;
+}
+
 if(isset($_GET['PayerID']) && isset($_GET['order']) && isset($_GET['token-success'])){
     $order_id = $_GET['order'];
     $check_token = get_post_meta($order_id,'paypal_token',true);
@@ -33,7 +46,8 @@ if(isset($_GET['PayerID']) && isset($_GET['order']) && isset($_GET['token-succes
         update_post_meta($order_id,'transition_id',$_GET['PayerID']);
         update_post_meta($order_id,'status','processing');
         update_post_meta($order_id,'paypal_token','');
-        wp_redirect(get_permalink($order_id));
+        $thankyou_page_id = get_page_id_by_template('templates/template-thankyou.php');
+        wp_redirect(get_permalink($thankyou_page_id) . '?ordered=1');
         exit;
     }
 }elseif(isset($_COOKIE['checkout_data']) && $_COOKIE['checkout_data'] != ""){
@@ -45,7 +59,8 @@ if(isset($_GET['PayerID']) && isset($_GET['order']) && isset($_GET['token-succes
     		//$order_id = create_new_order($checkout_data,strtolower($_GET['st']),$_GET['tx']);
             update_post_meta($order_id,'transition_id',$transaction_id);
             update_post_meta($order_id,'status',$_GET['tx']);
-    		wp_redirect(get_permalink($order_id));
+            $thankyou_page_id = get_page_id_by_template('templates/template-thankyou.php');
+            wp_redirect(get_permalink($thankyou_page_id) . '?ordered=1');
     		exit;
         }
 	}elseif($method == "klarna" && isset($_GET['token']) && $_GET['token'] != ""){
@@ -83,7 +98,8 @@ if(isset($_GET['PayerID']) && isset($_GET['order']) && isset($_GET['token-succes
                     update_post_meta($order_id,'status','pending');
                     //$order_id = create_new_order($checkout_data,'pending',$data['order_id']);
                 }
-                wp_redirect(get_permalink($order_id));
+                $thankyou_page_id = get_page_id_by_template('templates/template-thankyou.php');
+                wp_redirect(get_permalink($thankyou_page_id) . '?ordered=1');
                 exit;
             } catch (Exception $e) {
                 echo 'Caught exception: ' . $e->getMessage() . "\n";
