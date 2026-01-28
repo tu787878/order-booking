@@ -13,10 +13,11 @@ if (isset($_GET['ordered']) && $_GET['ordered'] == '1') {
     $button_color = get_option('button_color', '#50aecc');
     get_header();
     ?>
-    <div class="order_page">
+    <style>.order_page.ds-thankyou-page { text-align: center; } .order_page.ds-thankyou-page .ds-thankyou { max-width: 600px; margin: 0 auto; } .order_page.ds-thankyou-page .ds-thankyou h2 { margin: 0.5em 0; } .order_page.ds-thankyou-page .ds-thankyou-actions { margin-top: 1.5em; }</style>
+    <div class="order_page ds-thankyou-page">
         <div class="ds-thankyou">
             <h2><?php _e('Vielen Dank', 'dsmart'); ?></h2>
-            <h2><?php _e('Ihre Bestellung war erfolgreich', 'dsmart'); ?></h2>
+            <h6><?php _e('Ihre Bestellung war erfolgreich', 'dsmart'); ?></h6>
             <p class="ds-thankyou-actions">
                 <a href="<?php echo esc_url($shop_url); ?>" class="dsmart-button" style="background: <?php echo esc_attr($button_color); ?> !important;"><?php _e('Zurück zum Shop', 'dsmart'); ?></a>
             </p>
