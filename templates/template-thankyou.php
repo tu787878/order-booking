@@ -22,7 +22,7 @@ if (isset($_GET['ordered']) && $_GET['ordered'] == '1') {
             max-width: 600px; 
             margin: 0 auto; 
         }
-        .order_page.ds-thankyou-page .ds-thankyou h2 { 
+        .order_page.ds-thankyou-page .ds-thankyou h2, .order_page.ds-thankyou-page .ds-thankyou h6 { 
             margin: 0.5em 0;
             color: #000;
         }
@@ -34,7 +34,7 @@ if (isset($_GET['ordered']) && $_GET['ordered'] == '1') {
         }
         
         /* Dark mode styles */
-        body.dark-style .order_page.ds-thankyou-page .ds-thankyou h2 {
+        body.dark-style .order_page.ds-thankyou-page .ds-thankyou h2, body.dark-style .order_page.ds-thankyou-page .ds-thankyou h6 {
             color: #fff !important;
         }
         body.dark-style .order_page.ds-thankyou-page .ds-thankyou .dsmart-button {
@@ -44,7 +44,7 @@ if (isset($_GET['ordered']) && $_GET['ordered'] == '1') {
     <div class="order_page ds-thankyou-page">
         <div class="ds-thankyou">
             <h2><?php _e('Vielen Dank', 'dsmart'); ?></h2>
-            <h6><?php _e('Ihre Bestellung war erfolgreich', 'dsmart'); ?></h6>
+            <h6><?php _e('Ihre Bestellung war erfolgreich!', 'dsmart'); ?></h6>
             <p class="ds-thankyou-actions">
                 <a href="<?php echo esc_url($shop_url); ?>" class="dsmart-button" style="background: <?php echo esc_attr($button_color); ?> !important;"><?php _e('Zurück zum Shop', 'dsmart'); ?></a>
             </p>
