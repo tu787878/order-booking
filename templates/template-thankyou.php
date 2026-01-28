@@ -13,7 +13,34 @@ if (isset($_GET['ordered']) && $_GET['ordered'] == '1') {
     $button_color = get_option('button_color', '#50aecc');
     get_header();
     ?>
-    <style>.order_page.ds-thankyou-page { text-align: center; } .order_page.ds-thankyou-page .ds-thankyou { max-width: 600px; margin: 0 auto; } .order_page.ds-thankyou-page .ds-thankyou h2 { margin: 0.5em 0; } .order_page.ds-thankyou-page .ds-thankyou-actions { margin-top: 1.5em; }</style>
+    <style>
+        /* Light mode styles */
+        .order_page.ds-thankyou-page { 
+            text-align: center; 
+        }
+        .order_page.ds-thankyou-page .ds-thankyou { 
+            max-width: 600px; 
+            margin: 0 auto; 
+        }
+        .order_page.ds-thankyou-page .ds-thankyou h2 { 
+            margin: 0.5em 0;
+            color: #000;
+        }
+        .order_page.ds-thankyou-page .ds-thankyou-actions { 
+            margin-top: 1.5em; 
+        }
+        .order_page.ds-thankyou-page .ds-thankyou .dsmart-button {
+            color: #fff !important;
+        }
+        
+        /* Dark mode styles */
+        body.dark-style .order_page.ds-thankyou-page .ds-thankyou h2 {
+            color: #fff !important;
+        }
+        body.dark-style .order_page.ds-thankyou-page .ds-thankyou .dsmart-button {
+            color: #fff !important;
+        }
+    </style>
     <div class="order_page ds-thankyou-page">
         <div class="ds-thankyou">
             <h2><?php _e('Vielen Dank', 'dsmart'); ?></h2>
