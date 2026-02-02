@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.6.23
+ * Version: 1.6.24
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
