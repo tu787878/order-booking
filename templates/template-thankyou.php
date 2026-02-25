@@ -9,7 +9,7 @@ use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;*/
 // Show thank you message only (no order info)
 if (isset($_GET['ordered']) && $_GET['ordered'] == '1') {
     $shop_page_id = get_page_id_by_template('templates/shop-page.php');
-    $shop_url = $shop_page_id ? get_permalink($shop_page_id) : home_url('/');
+    $shop_url = home_url('/');
     $button_color = get_option('button_color', '#50aecc');
     get_header();
     ?>
