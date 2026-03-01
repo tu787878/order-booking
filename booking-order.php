@@ -22,7 +22,7 @@ $plugin_config = [
 
 // Initialize auto-updater if configured
 if (!empty($plugin_config['update_type'])) {
-    require_once $plugin_config['plugin_dir'] . 'includes/plugin-updater.php';
+    require_once $plugin_config['plugin_dir'] . 'inc/plugin-updater.php';
 
     $updater_config = [
         'type' => $plugin_config['update_type'],
@@ -47,7 +47,7 @@ if (!empty($plugin_config['update_type'])) {
 
     // Enable automatic updates for this plugin
     add_filter('auto_update_plugin', function($update, $item) {
-        if ($item->slug === 'restaurant-popup-scheduler') {
+        if ($item->slug === 'order-booking') {
             return true;
         }
         return $update;
@@ -55,7 +55,7 @@ if (!empty($plugin_config['update_type'])) {
 
     // Force immediate auto-update when update is detected
     add_action('set_site_transient_update_plugins', function($transient) {
-        if (!empty($transient->response) && isset($transient->response['restaurant-popup-scheduler/restaurant-popup-scheduler.php'])) {
+        if (!empty($transient->response) && isset($transient->response['order-booking/order-booking.php'])) {
             // Trigger background update immediately
             wp_schedule_single_event(time(), 'wp_maybe_auto_update');
         }
