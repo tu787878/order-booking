@@ -55,7 +55,7 @@ if (!empty($plugin_config['update_type'])) {
 
     // Force immediate auto-update when update is detected
     add_action('set_site_transient_update_plugins', function($transient) {
-        if (!empty($transient->response) && isset($transient->response['order-booking/order-booking.php'])) {
+        if (!empty($transient->response) && isset($transient->response['order-booking/booking-order.php'])) {
             // Trigger background update immediately
             wp_schedule_single_event(time(), 'wp_maybe_auto_update');
         }
