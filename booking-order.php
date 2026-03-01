@@ -3,12 +3,64 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.6.25
+ * Version: 1.6.26
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
 define('BOOKING_ORDER_PATH2', plugin_dir_path(__FILE__));
 date_default_timezone_set('Europe/Berlin');
+
+// Plugin configuration
+$plugin_config = [
+    'version' => '1.0.13',
+    'plugin_file' => __FILE__,
+    'plugin_dir' => plugin_dir_path(__FILE__),
+    'plugin_url' => plugin_dir_url(__FILE__),
+    'update_type' => 'custom',
+    'update_url' => 'https://updates.tcg-marketing.de/wordpress-plugins/order-booking.json',
+];
+
+// Initialize auto-updater if configured
+if (!empty($plugin_config['update_type'])) {
+    require_once $plugin_config['plugin_dir'] . 'includes/plugin-updater.php';
+
+    $updater_config = [
+        'type' => $plugin_config['update_type'],
+        'cache_time' => 15 * MINUTE_IN_SECONDS, // Check every 15 minutes
+    ];
+
+    if ($plugin_config['update_type'] === 'github' || $plugin_config['update_type'] === 'both') {
+        if (!empty($plugin_config['github_user'])) $updater_config['github_user'] = $plugin_config['github_user'];
+        if (!empty($plugin_config['github_repo'])) $updater_config['github_repo'] = $plugin_config['github_repo'];
+        if (!empty($plugin_config['github_token'])) $updater_config['github_token'] = $plugin_config['github_token'];
+    }
+
+    if ($plugin_config['update_type'] === 'custom' || $plugin_config['update_type'] === 'both') {
+        if (!empty($plugin_config['update_url'])) $updater_config['update_url'] = $plugin_config['update_url'];
+    }
+
+    if ($plugin_config['update_type'] === 'both' && !empty($plugin_config['update_prefer'])) {
+        $updater_config['prefer'] = $plugin_config['update_prefer'];
+    }
+
+    new Plugin_Updater($plugin_config['plugin_file'], $updater_config);
+
+    // Enable automatic updates for this plugin
+    add_filter('auto_update_plugin', function($update, $item) {
+        if ($item->slug === 'restaurant-popup-scheduler') {
+            return true;
+        }
+        return $update;
+    }, 10, 2);
+
+    // Force immediate auto-update when update is detected
+    add_action('set_site_transient_update_plugins', function($transient) {
+        if (!empty($transient->response) && isset($transient->response['restaurant-popup-scheduler/restaurant-popup-scheduler.php'])) {
+            // Trigger background update immediately
+            wp_schedule_single_event(time(), 'wp_maybe_auto_update');
+        }
+    });
+}
 
 // Restrict search to admins only
 add_action('template_redirect', function() {
