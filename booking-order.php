@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.7.0
+ * Version: 1.7.1
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -12,7 +12,7 @@ date_default_timezone_set('Europe/Berlin');
 
 // Plugin configuration
 $plugin_config = [
-    'version' => '1.0.13',
+    'version' => '1.7.1',
     'plugin_file' => __FILE__,
     'plugin_dir' => plugin_dir_path(__FILE__),
     'plugin_url' => plugin_dir_url(__FILE__),
@@ -3553,6 +3553,39 @@ function is_discount_time($shoptime = null, $date = null, $method = "shipping")
     else :
         $time_data  = strtotime($current_time);
     endif;
+
+    $time_to_minutes = function ($time_string) {
+        $time_string = trim((string) $time_string);
+        if ($time_string === '') {
+            return null;
+        }
+        $parts = explode(':', $time_string);
+        if (count($parts) < 2) {
+            return null;
+        }
+        $h = intval($parts[0]);
+        $m = intval($parts[1]);
+        if ($h < 0 || $h > 23 || $m < 0 || $m > 59) {
+            return null;
+        }
+        return $h * 60 + $m;
+    };
+
+    $time_in_range = function ($time_minutes, $start_string, $end_string) use ($time_to_minutes) {
+        $start_minutes = $time_to_minutes($start_string);
+        $end_minutes = $time_to_minutes($end_string);
+        if ($time_minutes === null || $start_minutes === null || $end_minutes === null) {
+            return false;
+        }
+
+        if ($start_minutes <= $end_minutes) {
+            return $time_minutes >= $start_minutes && $time_minutes <= $end_minutes;
+        }
+
+        return $time_minutes >= $start_minutes || $time_minutes <= $end_minutes;
+    };
+
+    $time_minutes = $time_to_minutes(date('H:i', $time_data));
     $close_shop                     = get_option('dsmart_close_shop');
     if ($date == null) {
         $current_date_text              = custom_date();
@@ -3567,13 +3600,17 @@ function is_discount_time($shoptime = null, $date = null, $method = "shipping")
         $time_discount_shop             = get_option('time_discount_shop_2_' . $current_date_text);
     }
     $dsmart_custom_discount_date    = get_option('dsmart_custom_discount_date');
+    $custom_time_found_for_date = false;
     if ($dsmart_custom_discount_date != "" && count($dsmart_custom_discount_date) > 0) {
         foreach ($dsmart_custom_discount_date as $item) {
             if ($current_date == $item['date']) {
+                $custom_time_found_for_date = true;
                 $time_arr = explode(',', $item['time']);
                 foreach ($time_arr as  $val) {
                     $val_Arr = explode('-', $val);
-                    if ($time_data >= strtotime($val_Arr[0]) && $time_data <= strtotime($val_Arr[1])) {
+                    $start = isset($val_Arr[0]) ? trim($val_Arr[0]) : '';
+                    $end = isset($val_Arr[1]) ? trim($val_Arr[1]) : '';
+                    if ($time_in_range($time_minutes, $start, $end)) {
                         $has_discount = true;
                         break;
                     }
@@ -3582,13 +3619,15 @@ function is_discount_time($shoptime = null, $date = null, $method = "shipping")
             }
         }
     }
-    if ($has_discount == false) {
+    if ($custom_time_found_for_date == false && $has_discount == false) {
         if ($time_discount_shop != "") {
             $time_discount_shop = explode(',', $time_discount_shop);
             foreach ($time_discount_shop as $time) {
                 $time_Arr = explode('-', $time);
 
-                if ($time_data >= strtotime($time_Arr[0]) && $time_data <= strtotime($time_Arr[1])) {
+                $start = isset($time_Arr[0]) ? trim($time_Arr[0]) : '';
+                $end = isset($time_Arr[1]) ? trim($time_Arr[1]) : '';
+                if ($time_in_range($time_minutes, $start, $end)) {
                     $has_discount = true;
                     break;
                 }
