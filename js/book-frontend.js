@@ -1817,10 +1817,12 @@ jQuery(document).ready(function ($) {
     let sidedish_info = null;
     let variable_id = null;
     if ($(this).parents(".item").find(".choose-variable").length > 0) {
-      variable_id = $(this)
-        .parents(".choose-variable")
-        .find("option:selected")
-        .attr("data-id");
+      if ($(this).parents("form").find(".variable-select").length > 0) {
+        variable_id = $(this)
+          .parents(".choose-variable")
+          .find("option:selected")
+          .attr("data-id");
+      }
       total_quantity = parseInt(
         $(this).parents("form").find(".total-quantity input").val()
       );
@@ -2072,9 +2074,12 @@ jQuery(document).ready(function ($) {
     let input_quantity = parseInt(
       $(el).parents("form").find(".total-quantity input").val()
     );
-    let variable_price = parseFloat(
-      $(el).parents(".choose-variable").find("option:selected").attr("data-price")
-    );
+    let variable_price = 0;
+    if ($(el).parents("form").find(".variable-select").length > 0) {
+      variable_price = parseFloat(
+        $(el).parents(".choose-variable").find("option:selected").attr("data-price")
+      );
+    }
     let extra_price = 0;
     let extra_product_Arr = [];
     let sidedish_price = 0;

@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.7.1
+ * Version: 1.7.2
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -12,7 +12,7 @@ date_default_timezone_set('Europe/Berlin');
 
 // Plugin configuration
 $plugin_config = [
-    'version' => '1.7.1',
+    'version' => '1.7.2',
     'plugin_file' => __FILE__,
     'plugin_dir' => plugin_dir_path(__FILE__),
     'plugin_url' => plugin_dir_url(__FILE__),

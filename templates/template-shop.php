@@ -188,6 +188,7 @@ get_header(); ?>
                             $meta['extra_name'] = dsmart_field('extra_name');
                             $meta['extra_type'] = dsmart_field('extra_type');
                             $meta['extra_price'] = dsmart_field('extra_price'); 
+                            $isExtra = ($meta['extra_name'] != null && !empty(array_filter($meta['extra_name'])) && $meta['extra_price'] != null && !empty(array_filter($meta['extra_price'])));
                             if($meta['varialbe_price'] != null && !empty(array_filter($meta['varialbe_price']))): 
                                 $price = $meta['varialbe_price'][0];
                             endif;  ?>
@@ -231,7 +232,7 @@ get_header(); ?>
                                             <?php endif; ?>
                                         </div>
                                     </div>
-                                     <?php if(($dsmart_stock == "1" || ($dsmart_stock != "1" && $ds_status_product == "instock")) && $price != "" && $meta['quantity'] != null &&  !empty(array_filter($meta['quantity'])) && $meta['varialbe_price'] != null && !empty(array_filter($meta['varialbe_price']))): ?>
+                                     <?php if(($dsmart_stock == "1" || ($dsmart_stock != "1" && $ds_status_product == "instock")) && $price != "" && (($meta['quantity'] != null &&  !empty(array_filter($meta['quantity'])) && $meta['varialbe_price'] != null && !empty(array_filter($meta['varialbe_price']))) || $isExtra)): ?>
                                         <div class="variable-product">
                                             <div class="inner">
                                                 <h4 class="product-title"><?php the_title(); ?></h4>
@@ -258,23 +259,32 @@ get_header(); ?>
                                                             echo '<input type="hidden" name="extra_info" value="" />';
                                                             echo '</div>';
                                                         endif; ?>
-                                                        <div class="select-wrap">
-                                                            <select class="variable-select">
-                                                               <?php foreach ($meta['quantity'] as $index => $value) { ?>
-                                                                    <option value="<?php echo $meta['varialbe_price'][$index]; ?>" data-id="<?php echo get_the_ID().'_'.($index+1).'_variable'; ?>" >
-                                                                        <?php echo $meta['quantity'][$index] .': '. ds_price_format_text($meta['varialbe_price'][$index]) ; ?>
-                                                                    </option>
-                                                               <?php } ?>
-                                                            </select>
-                                                            <i class="fa fa-angle-down" aria-hidden="true"></i>
-                                                        </div>                                                       
+                                                        <?php if($meta['quantity'] != null &&  !empty(array_filter($meta['quantity'])) && $meta['varialbe_price'] != null && !empty(array_filter($meta['varialbe_price']))): ?>
+                                                            <div class="select-wrap">
+                                                                <select class="variable-select">
+                                                                   <?php foreach ($meta['quantity'] as $index => $value) { ?>
+                                                                        <option value="<?php echo $meta['varialbe_price'][$index]; ?>" data-id="<?php echo get_the_ID().'_'.($index+1).'_variable'; ?>" data-price="<?php echo $meta['varialbe_price'][$index]; ?>" >
+                                                                            <?php echo $meta['quantity'][$index] .': '. ds_price_format_text($meta['varialbe_price'][$index]) ; ?>
+                                                                        </option>
+                                                                   <?php } ?>
+                                                                </select>
+                                                                <i class="fa fa-angle-down" aria-hidden="true"></i>
+                                                            </div>
+                                                        <?php endif; ?>                                                      
                                                         <div class="quantity-submit flex-list">
                                                             <div class="total-quantity quantity-wrap flex-list">
                                                                 <button type="button" class="minus"><i class="fa fa-minus" aria-hidden="true"></i></button>
                                                                 <input type="number" name="quantity" class="form-control input-quantity" value="1" min="1">
                                                                 <button type="button" class="plus"><i class="fa fa-plus" aria-hidden="true"></i></button>                                                            
                                                             </div>
-                                                            <button type="submit" class="add-to-cart" data-id="<?php the_ID(); ?>"><?php echo ds_price_format_text($meta['varialbe_price'][0]); ?></button>
+                                                            <?php
+                                                                if($meta['varialbe_price'] != null && !empty(array_filter($meta['varialbe_price']))){
+                                                                    $base_price = $meta['varialbe_price'][0];
+                                                                }else{
+                                                                    $base_price = dsmart_field('price');
+                                                                }
+                                                            ?>
+                                                            <button type="submit" class="add-to-cart" data-id="<?php the_ID(); ?>"><?php echo ds_price_format_text($base_price); ?></button>
                                                         </div>
                                                    </form>
                                                 </div>
