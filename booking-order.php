@@ -1037,12 +1037,12 @@ function ds_get_cart_total_item($cart = null)
             $meta['sidedish_name'] = dsmart_field('sidedish_name', $product_id);
             $meta['sidedish_price'] = dsmart_field('sidedish_price', $product_id);
             $extra_price = 0;
-            if (isset($value_item['extra_info']) && $value_item['extra_info'] != null && $meta['extra_name'] != null && !empty(array_filter($meta['extra_name'])) && $meta['extra_price'] != null && !empty(array_filter($meta['extra_price']))) :
+            if (isset($value_item['extra_info']) && $value_item['extra_info'] != null && $meta['extra_name'] != null && !empty(array_filter($meta['extra_name']))) :
                 $extra_info = json_decode(stripslashes($value_item['extra_info']));
                 foreach ($extra_info as $extra_key => $extra_value) {
                     $extra_id = intval(explode('_', $extra_value->extra_id)[1]) - 1;
                     $extra_quantity = $extra_value->extra_quantity;
-                    $temp_price = $meta['extra_price'][$extra_id];
+                    $temp_price = (isset($meta['extra_price'][$extra_id]) && $meta['extra_price'][$extra_id] !== "") ? $meta['extra_price'][$extra_id] : 0;
                     $temp_price = floatval($temp_price) * intval($extra_quantity);
                     $extra_price = $extra_price + $temp_price;
                 }
@@ -1104,12 +1104,12 @@ function ds_get_cart_total_item_use_coupon($cart = null)
                 $meta['extra_name'] = dsmart_field('extra_name', $product_id);
                 $meta['extra_price'] = dsmart_field('extra_price', $product_id);
                 $extra_price = 0;
-                if (isset($value_item['extra_info']) && $value_item['extra_info'] != null && $meta['extra_name'] != null && !empty(array_filter($meta['extra_name'])) && $meta['extra_price'] != null && !empty(array_filter($meta['extra_price']))) :
+                if (isset($value_item['extra_info']) && $value_item['extra_info'] != null && $meta['extra_name'] != null && !empty(array_filter($meta['extra_name']))) :
                     $extra_info = json_decode(stripslashes($value_item['extra_info']));
                     foreach ($extra_info as $extra_key => $extra_value) {
                         $extra_id = intval(explode('_', $extra_value->extra_id)[1]) - 1;
                         $extra_quantity = $extra_value->extra_quantity;
-                        $temp_price = $meta['extra_price'][$extra_id];
+                        $temp_price = (isset($meta['extra_price'][$extra_id]) && $meta['extra_price'][$extra_id] !== "") ? $meta['extra_price'][$extra_id] : 0;
                         $temp_price = floatval($temp_price) * intval($extra_quantity);
                         $extra_price = $extra_price + $temp_price;
                     }
@@ -1963,7 +1963,7 @@ function send_mail_after_order($order_id)
             
             $data_item .= '<div class="section" style="margin-bottom: 10px;padding-bottom: 10px;border-bottom: 1px dashed #000;">';
             
-            $isExtra = isset($item['extra_info']) && $item['extra_info'] != null && $meta['extra_name'] != null && !empty(array_filter($meta['extra_name'])) && $meta['extra_price'] != null && !empty(array_filter($meta['extra_price']));
+            $isExtra = isset($item['extra_info']) && $item['extra_info'] != null && $meta['extra_name'] != null && !empty(array_filter($meta['extra_name']));
             $isSidedish = isset($item['sidedish_info']) && $item['sidedish_info'] != null && $meta['sidedish_name'] != null && !empty(array_filter($meta['sidedish_name']));
             $isVariable = isset($item['variable_id']) && $meta['quantity'] != null && !empty(array_filter($meta['quantity'])) && $meta['varialbe_price'] != null && !empty(array_filter($meta['varialbe_price']));
             
@@ -2014,9 +2014,10 @@ function send_mail_after_order($order_id)
                     foreach ($extra_info as $extra_key => $extra_value) {
                         $extra_id = intval(explode('_', $extra_value->extra_id)[1]) - 1;
                         $extra_quantity = $extra_value->extra_quantity;
+                        $extra_price_val = (isset($meta['extra_price'][$extra_id]) && $meta['extra_price'][$extra_id] !== "") ? $meta['extra_price'][$extra_id] : '';
                         $height += 30;
-                        $data_item .= '<p style="line-height: 1.3;margin: 0;text-align: center;">' . $meta['extra_name'][$extra_id] . ':' . ds_price_format_text($meta['extra_price'][$extra_id]) . ' x ' . $extra_quantity . '</p>';
-                        $extra_text .= '<li style="margin: 0;">' . $meta['extra_name'][$extra_id] . '(+' . ds_price_format_text($meta['extra_price'][$extra_id]) . ') x ' . $extra_quantity . '</li>';
+                        $data_item .= '<p style="line-height: 1.3;margin: 0;text-align: center;">' . $meta['extra_name'][$extra_id] . ($extra_price_val !== '' ? ': ' . ds_price_format_text($extra_price_val) : '') . ' x ' . $extra_quantity . '</p>';
+                        $extra_text .= '<li style="margin: 0;">' . $meta['extra_name'][$extra_id] . ($extra_price_val !== '' ? '(+' . ds_price_format_text($extra_price_val) . ')' : '') . ' x ' . $extra_quantity . '</li>';
                     }
                     $extra_text .= '</ul>';
                 else :

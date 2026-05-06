@@ -2106,6 +2106,9 @@ jQuery(document).ready(function ($) {
         let temp_quantity = $(this).attr("data-quantity");
         let temp_price = $(this).attr("data-price");
         let temp_id = $(this).attr("data-id");
+        if (temp_price === "" || typeof temp_price === "undefined") {
+          temp_price = 0;
+        }
         if (
           $(this).parents(".custom-radio-checkbox").find(".extra-quantity")
             .length > 0

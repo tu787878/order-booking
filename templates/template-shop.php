@@ -188,7 +188,7 @@ get_header(); ?>
                             $meta['extra_name'] = dsmart_field('extra_name');
                             $meta['extra_type'] = dsmart_field('extra_type');
                             $meta['extra_price'] = dsmart_field('extra_price'); 
-                            $isExtra = ($meta['extra_name'] != null && !empty(array_filter($meta['extra_name'])) && $meta['extra_price'] != null && !empty(array_filter($meta['extra_price'])));
+                            $isExtra = ($meta['extra_name'] != null && !empty(array_filter($meta['extra_name'])));
                             if($meta['varialbe_price'] != null && !empty(array_filter($meta['varialbe_price']))): 
                                 $price = $meta['varialbe_price'][0];
                             endif;  ?>
@@ -239,14 +239,18 @@ get_header(); ?>
                                                 <div class="choose-variable">
                                                    <form class="Variable-form">
                                                          <?php 
-                                                         if($meta['extra_name'] != null && !empty(array_filter($meta['extra_name'])) && $meta['extra_price'] != null && !empty(array_filter($meta['extra_price']))):
+                                                         if($meta['extra_name'] != null && !empty(array_filter($meta['extra_name']))):
                                                             echo '<div class="extra-product">';
                                                             echo '<h5 class="extra-title">Ihre Extras:</h5>';
                                                             foreach ($meta['extra_name'] as $key => $extra) {
                                                                 $extra_type = dsmart_field('extra_type'.($key+1)); ?>
                                                                 <label class="custom-radio-checkbox rowct">
-                                                                    <input type="checkbox" name="extra_product" data-id="<?php echo get_the_ID().'_'.($key+1).'_extra'; ?>" data-quantity="<?php echo ($extra_type == 'tick')? 1 : ''; ?>" data-price="<?php echo $meta['extra_price'][$key]; ?>"> 
-                                                                    <span class="text"><?php echo $meta['extra_name'][$key] .' (+'. ds_price_format_text($meta['extra_price'][$key]) .')'; ?></span> 
+                                                                    <?php
+                                                                        $extra_price_val = (isset($meta['extra_price'][$key]) && $meta['extra_price'][$key] !== null) ? $meta['extra_price'][$key] : '';
+                                                                        $extra_price_data = ($extra_price_val !== '') ? $extra_price_val : 0;
+                                                                    ?>
+                                                                    <input type="checkbox" name="extra_product" data-id="<?php echo get_the_ID().'_'.($key+1).'_extra'; ?>" data-quantity="<?php echo ($extra_type == 'tick')? 1 : ''; ?>" data-price="<?php echo $extra_price_data; ?>"> 
+                                                                    <span class="text"><?php echo $meta['extra_name'][$key] . ($extra_price_val !== '' ? ' (+'. ds_price_format_text($extra_price_val) .')' : ''); ?></span> 
                                                                     <?php if($extra_type != 'tick'): ?>
                                                                         <div class="extra-quantity quantity-wrap flex-list">
                                                                             <button type="button" class="minus"><i class="fa fa-minus" aria-hidden="true"></i></button>
