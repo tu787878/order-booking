@@ -179,10 +179,10 @@ function product_info_display() {
 						</tfoot>
 						<tbody>
 							<?php $a=1;
-							if($meta['extra_name'] != null && !empty(array_filter($meta['extra_name'])) && $meta['extra_price'] != null && !empty(array_filter($meta['extra_price']))):
+							if($meta['extra_name'] != null && !empty(array_filter($meta['extra_name']))):
 								foreach($meta['extra_name'] as $index => $extra_val ) : 
 									$extra_type = dsmart_field('extra_type'.$a);
-									if($meta['extra_name'][$index] != null && $meta['extra_price'][$index] != null):	?>
+									if($meta['extra_name'][$index] != null):	?>
 										<tr class="fields-group">
 											<td><input type='text' name='extra_name[]' class='widefat' value="<?php echo esc_attr($meta['extra_name'][$index]); ?>" /></td>
 											<td>
@@ -195,7 +195,7 @@ function product_info_display() {
 													<?php echo __("Tick and choose quantity","dsmart"); ?>
 												</label>
 											</td>
-											<td><input type="text" name="extra_price[]" class="widefat" value="<?php echo esc_attr($meta['extra_price'][$index]); ?>" /></td>
+											<td><input type="text" name="extra_price[]" class="widefat" value="<?php echo esc_attr(isset($meta['extra_price'][$index]) ? $meta['extra_price'][$index] : ''); ?>" /></td>
 											<td class="remove-td"><a href="javascript:void()" class="dsmart-remove-fields"><?php _e('x'); ?></a></td>
 										</tr>
 								<?php endif; $a++; endforeach;
