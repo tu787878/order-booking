@@ -2050,9 +2050,12 @@ jQuery(document).ready(function ($) {
   function ds_price_format_text(price) {
     let currency = bookingVars.currency;
     price = ds_convert_price(price);
-   
-    price = currency + " " + number_format(price, 2, ".", " ");
-    return price;
+
+    let formattedNumber = number_format(price, 2, ".", " ");
+    if (currency === "€") {
+      return formattedNumber + " " + currency;
+    }
+    return currency + " " + formattedNumber;
   }
 
   function ds_convert_price(price) {
