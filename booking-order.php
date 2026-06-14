@@ -3315,10 +3315,23 @@ function create_new_order($data, $status = 'processing', $transaction_id = null)
     ));
     $show_second_number = get_option('show_second_number');
     if ($show_second_number == "1") {
+        global $wpdb;
         $current_date = date('Ymd');
-        $total_order_in_date = (get_option('total_order_' . $current_date) != "") ? intval(get_option('total_order_' . $current_date)) : 0;
-        $total_order_in_date = $total_order_in_date + 1;
-        update_option('total_order_' . $current_date, $total_order_in_date);
+        $option_name = 'total_order_' . $current_date;
+        
+        // Safely initialize the option if it doesn't exist (INSERT IGNORE prevents race condition errors)
+        $wpdb->query($wpdb->prepare(
+            "INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, '0', 'no')",
+            $option_name
+        ));
+        
+        // Atomic increment using LAST_INSERT_ID to get the new value per-connection (no duplicates)
+        $wpdb->query($wpdb->prepare(
+            "UPDATE {$wpdb->options} SET option_value = LAST_INSERT_ID(option_value + 1) WHERE option_name = %s",
+            $option_name
+        ));
+        $total_order_in_date = intval($wpdb->get_var("SELECT LAST_INSERT_ID()"));
+        
         add_post_meta($order_id, 'second_order_number', $total_order_in_date);
     }
     $item = array();
@@ -4010,6 +4023,7 @@ add_filter('body_class', 'dsmart_add_class_to_body');
 //check category time open or not
 function check_category_open_or_not($t_id)
 {
+    date_default_timezone_set('Europe/Berlin');
     $tax_enable = get_term_meta( $t_id, 'tax_enable', true );
 
     if($tax_enable === "0") return false;
@@ -4022,27 +4036,41 @@ function check_category_open_or_not($t_id)
     if ($dsmart_new_custom_date != "" && count($dsmart_new_custom_date) > 0) {
         $current_date = date("Y-m-d");
         $current_time = date("H:i");
+
+		$has_open_rule_today = false;
+		$matched_open_rule_today = false;
+
         foreach ($dsmart_new_custom_date as $item) {
             $start_date = date("Y-m-d", strtotime($item["start_date"]));
             $end_date = date("Y-m-d", strtotime($item["end_date"]));
             
             $correct_single = $item["date_type"] === "single" && $start_date === $current_date;
             $correct_mutiple = $item["date_type"] !== "single" && $current_date >= $start_date && $current_date <= $end_date;
-            if($correct_single || $correct_mutiple){    
-                if($item["time_type"] === "time_to_time"){
-                    if($current_time >= $item["start_time"] && $current_time <= $item["end_time"]){
-                        if ($item["status"] === "close") {
-                            return false;
-                        }
-                    }
-                }
-                else{
-                    if ($item["status"] === "close") {
-                        return false;
-                    }
-                }
+            if($correct_single || $correct_mutiple){
+				if ($item["status"] === "close") {
+					if($item["time_type"] === "time_to_time"){
+						if($current_time >= $item["start_time"] && $current_time <= $item["end_time"]){
+							return false;
+						}
+					} else {
+						return false;
+					}
+				} else {
+					$has_open_rule_today = true;
+					if($item["time_type"] === "time_to_time"){
+						if($current_time >= $item["start_time"] && $current_time <= $item["end_time"]){
+							$matched_open_rule_today = true;
+						}
+					} else {
+						$matched_open_rule_today = true;
+					}
+				}
             }
         } 
+
+		if ($has_open_rule_today && !$matched_open_rule_today) {
+			return false;
+		}
     }
 
 
@@ -4050,20 +4078,36 @@ function check_category_open_or_not($t_id)
     $custom_date = custom_date();
     $now = new DateTime($current_time);
     $tax_time = get_term_meta($t_id, 'tax_time', true);
-    $check = true;
-    if ($tax_time != "" && count($tax_time) > 0) {
-        foreach ($tax_time as $key => $value) {
-            $time_date = $value['date'];
-            $time_open = $value['open'];
-            $time_close = $value['close'];
-            if ($time_date == $custom_date && $time_open != "" && new DateTime($time_open) > $now) {
-                return false;
-            } elseif ($time_date == $custom_date && $time_close != "" && new DateTime($time_close) < $now) {
-                return false;
-            }
-        }
-    }
-    return true;
+	$has_rule_today = false;
+	$matches_any_window = false;
+	if ($tax_time != "" && count($tax_time) > 0) {
+		foreach ($tax_time as $key => $value) {
+			$time_date = $value['date'];
+			$time_open = $value['open'];
+			$time_close = $value['close'];
+			if ($time_date != $custom_date) {
+				continue;
+			}
+			$has_rule_today = true;
+
+			$open_ok = true;
+			$close_ok = true;
+			if ($time_open != "") {
+				$open_ok = $now >= new DateTime($time_open);
+			}
+			if ($time_close != "") {
+				$close_ok = $now <= new DateTime($time_close);
+			}
+			if ($open_ok && $close_ok) {
+				$matches_any_window = true;
+				break;
+			}
+		}
+	}
+	if ($has_rule_today) {
+		return $matches_any_window;
+	}
+	return true;
 }
 //get all category not open
 //get data zipcode
