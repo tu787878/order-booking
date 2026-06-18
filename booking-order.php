@@ -192,11 +192,9 @@ function orders_sortable_columns( $columns ) {
 // Handle sorting by shipping_method
 add_filter( 'request', 'orders_sortable_orderby' );
 function orders_sortable_orderby( $vars ) {
-	if ( isset( $vars['orderby'] ) && 'shipping_method' == $vars['orderby'] ) {
-		$vars = array_merge( $vars, array(
-			'meta_key' => 'shipping_method',
-			'orderby' => 'meta_value'
-		) );
+	if ( isset( $vars['orderby'] ) && 'shipping_method' === $vars['orderby'] ) {
+		$vars['meta_key'] = 'shipping_method';
+		$vars['orderby'] = 'meta_value';
 	}
 	return $vars;
 }
@@ -204,39 +202,52 @@ function orders_sortable_orderby( $vars ) {
 // Add filter dropdown for shipping method
 add_action( 'restrict_manage_posts', 'orders_shipping_method_filter' );
 function orders_shipping_method_filter() {
-	global $typenow;
+	global $typenow, $wp_query;
 	
+	// Check if we're on the orders post type page
 	if ( 'orders' !== $typenow ) {
 		return;
 	}
 	
 	$shipping_method = isset( $_GET['shipping_method_filter'] ) ? sanitize_text_field( $_GET['shipping_method_filter'] ) : '';
-	?>
-	<select name="shipping_method_filter" id="shipping_method_filter">
-		<option value="">Alle Lieferungsmethoden</option>
-		<option value="shipping" <?php selected( $shipping_method, 'shipping' ); ?>>Lieferung</option>
-		<option value="direct" <?php selected( $shipping_method, 'direct' ); ?>>Abholung</option>
-	</select>
-	<?php
+	
+	echo '<select name="shipping_method_filter" id="shipping_method_filter" style="margin-left: 10px; padding: 5px 10px;">';
+	echo '<option value="">— Alle Lieferungsmethoden —</option>';
+	echo '<option value="shipping"' . selected( $shipping_method, 'shipping', false ) . '>Lieferung</option>';
+	echo '<option value="direct"' . selected( $shipping_method, 'direct', false ) . '>Abholung</option>';
+	echo '</select>';
 }
 
 // Apply shipping method filter to query
-add_filter( 'parse_query', 'orders_shipping_method_filter_query' );
+add_filter( 'parse_query', 'orders_shipping_method_filter_query', 10, 1 );
 function orders_shipping_method_filter_query( $query ) {
-	global $pagenow;
-	global $typenow;
-	
-	if ( 'edit.php' !== $pagenow || 'orders' !== $typenow ) {
+	// Only apply in admin
+	if ( ! is_admin() ) {
 		return;
 	}
 	
-	if ( isset( $_GET['shipping_method_filter'] ) && ! empty( $_GET['shipping_method_filter'] ) ) {
-		$shipping_method = sanitize_text_field( $_GET['shipping_method_filter'] );
-		
-		$query->query_vars['meta_key'] = 'shipping_method';
-		$query->query_vars['meta_value'] = $shipping_method;
-		$query->query_vars['meta_compare'] = '=';
+	// Only apply to orders post type
+	if ( ! isset( $query->query_vars['post_type'] ) || 'orders' !== $query->query_vars['post_type'] ) {
+		return;
 	}
+	
+	// Check if filter parameter exists
+	if ( ! isset( $_GET['shipping_method_filter'] ) || empty( $_GET['shipping_method_filter'] ) ) {
+		return;
+	}
+	
+	$shipping_method = sanitize_text_field( $_GET['shipping_method_filter'] );
+	
+	// Build meta query
+	$meta_query = array(
+		array(
+			'key'     => 'shipping_method',
+			'value'   => $shipping_method,
+			'compare' => '='
+		)
+	);
+	
+	$query->set( 'meta_query', $meta_query );
 }
 
 
