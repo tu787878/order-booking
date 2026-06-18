@@ -152,6 +152,16 @@ function book_posts_stickiness( $column, $post_id ) {
 	if ($column == 'total'){
 		 echo "€".get_post_meta( $post_id, 'total', true );
     }
+	if ($column == 'shipping_method'){
+		$shipping_method = get_post_meta( $post_id, 'shipping_method', true );
+		if($shipping_method == 'shipping'){
+			echo '<span class="shipping-badge delivery">Lieferung</span>';
+		} else if($shipping_method == 'direct'){
+			echo '<span class="shipping-badge pickup">Abholung</span>';
+		} else {
+			echo '-';
+		}
+	}
 	   
 }
 add_action( 'manage_orders_posts_custom_column' , 'book_posts_stickiness', 10, 2 );
@@ -164,11 +174,69 @@ function orders_filter_posts_columns( $columns) {
       'bestellnummer' => __( 'Bestellnummer' ),
       'email' => __( 'Email' ),
       'telefon' => __( 'Telefon' ),
+      'shipping_method' => __( 'Lieferung/Abholung' ),
       'total' => __( 'Gesamtsumme' ),
       'date' => __( 'Datum' ),
     );
 
   return $columns;
+}
+
+// Make shipping_method column sortable
+add_filter( 'manage_edit-orders_sortable_columns', 'orders_sortable_columns' );
+function orders_sortable_columns( $columns ) {
+	$columns['shipping_method'] = 'shipping_method';
+	return $columns;
+}
+
+// Handle sorting by shipping_method
+add_filter( 'request', 'orders_sortable_orderby' );
+function orders_sortable_orderby( $vars ) {
+	if ( isset( $vars['orderby'] ) && 'shipping_method' == $vars['orderby'] ) {
+		$vars = array_merge( $vars, array(
+			'meta_key' => 'shipping_method',
+			'orderby' => 'meta_value'
+		) );
+	}
+	return $vars;
+}
+
+// Add filter dropdown for shipping method
+add_action( 'restrict_manage_posts', 'orders_shipping_method_filter' );
+function orders_shipping_method_filter() {
+	global $typenow;
+	
+	if ( 'orders' !== $typenow ) {
+		return;
+	}
+	
+	$shipping_method = isset( $_GET['shipping_method_filter'] ) ? sanitize_text_field( $_GET['shipping_method_filter'] ) : '';
+	?>
+	<select name="shipping_method_filter" id="shipping_method_filter">
+		<option value="">Alle Lieferungsmethoden</option>
+		<option value="shipping" <?php selected( $shipping_method, 'shipping' ); ?>>Lieferung</option>
+		<option value="direct" <?php selected( $shipping_method, 'direct' ); ?>>Abholung</option>
+	</select>
+	<?php
+}
+
+// Apply shipping method filter to query
+add_filter( 'parse_query', 'orders_shipping_method_filter_query' );
+function orders_shipping_method_filter_query( $query ) {
+	global $pagenow;
+	global $typenow;
+	
+	if ( 'edit.php' !== $pagenow || 'orders' !== $typenow ) {
+		return;
+	}
+	
+	if ( isset( $_GET['shipping_method_filter'] ) && ! empty( $_GET['shipping_method_filter'] ) ) {
+		$shipping_method = sanitize_text_field( $_GET['shipping_method_filter'] );
+		
+		$query->query_vars['meta_key'] = 'shipping_method';
+		$query->query_vars['meta_value'] = $shipping_method;
+		$query->query_vars['meta_compare'] = '=';
+	}
 }
 
 
@@ -218,6 +286,38 @@ function book_admin_script()
     wp_enqueue_style('jquery-ui.min.css', BOOKING_ORDER_PATH . 'css/jquery-ui.min.css');
     wp_enqueue_style('book-admin.css', BOOKING_ORDER_PATH . 'css/book-admin.css', array(), rand());
     wp_enqueue_style('coloris.css', BOOKING_ORDER_PATH . 'css/coloris.css', array(), rand());
+    
+    // Add inline styles for shipping method badges
+    $shipping_badge_css = "
+        .shipping-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 3px;
+            font-weight: 500;
+            font-size: 12px;
+            text-align: center;
+            min-width: 80px;
+        }
+        
+        .shipping-badge.delivery {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .shipping-badge.pickup {
+            background-color: #e2e3e5;
+            color: #383d41;
+            border: 1px solid #d6d8db;
+        }
+        
+        #shipping_method_filter {
+            margin-left: 10px;
+            padding: 5px 10px;
+        }
+    ";
+    wp_add_inline_style('book-admin.css', $shipping_badge_css);
+    
     wp_enqueue_script('bootstrap.min.js', BOOKING_ORDER_PATH . 'js/bootstrap.min.js', array('jquery'), '3.8', true);
     wp_enqueue_script('jquery.timepicker.min.js', BOOKING_ORDER_PATH . 'js/jquery.timepicker.min.js', array('jquery'), '3.8', true);
     wp_enqueue_script('jquery-ui.min.js', BOOKING_ORDER_PATH . 'js/jquery-ui.min.js', array('jquery'), '3.8', true);
@@ -2146,6 +2246,8 @@ function send_mail_after_order($order_id)
     $html_file .= '</b></p>';
     $html_file .= '<h2 style="line-height: 1.3;margin: 0;text-align: center;">' . ucfirst($method_text) . '</h2>';
     $html_file .= '</div>';
+    $order_placed_at = get_the_date('d.m.Y', $order_id) . ' ' . get_the_time('H:i:s', $order_id);
+    $html_file .= '<div style="margin-top: 10px;padding-top: 6px;border-top: 1px dashed #000;text-align: center;"><p style="font-size: 7px;line-height: 1.4;margin: 0;color: #555;">Bestellzeitpunkt: ' . $order_placed_at . '</p></div>';
     $html_file .= '</body> </html>';
     $random_val = "order" . $order_id;
     //create example
@@ -2306,7 +2408,8 @@ function send_mail_after_order($order_id)
                     $data_pool .= '</div>';
                 }
             }
-            $attachments[] = create_pool($pool, $random_val, $i++, $total_pool, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info2);
+            $order_placed_at_pool = get_the_date('d.m.Y', $order_id) . ' ' . get_the_time('H:i:s', $order_id);
+            $attachments[] = create_pool($pool, $random_val, $i++, $total_pool, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info2, $order_placed_at_pool);
         }
     }
 
@@ -2352,7 +2455,7 @@ function order_time_info2($shipping_method, $user_location, $order_date, $user_d
     return $html_file;
 }
 
-function create_pool($pool, $order_id, $index, $total, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info)
+function create_pool($pool, $order_id, $index, $total, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info, $order_placed_at = '')
 {
     $html_file = '<!DOCTYPE html> <html style="margin: 0;padding: 0;"> <head> <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"> </head> <body style="padding: 0px 15px 0px 15px;"> <div style="margin-bottom: 10px;padding-bottom: 10px;border-bottom: 1px dashed #000;"> <h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">'. $pool .' ('. $index .'/'. $total .')</h3>';
     if ($show_second_number == "1") {
@@ -2364,6 +2467,9 @@ function create_pool($pool, $order_id, $index, $total, $show_second_number, $sec
     $html_file .= '<h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">Bestellinformationen</h3>';
     $html_file .= '</div>';
     $html_file .= $data_pool;
+    if ($order_placed_at !== '') {
+        $html_file .= '<div style="margin-top: 10px;padding-top: 6px;border-top: 1px dashed #000;text-align: center;"><p style="font-size: 7px;line-height: 1.4;margin: 0;color: #555;">Bestellzeitpunkt: ' . $order_placed_at . '</p></div>';
+    }
     $html_file .= '</body> </html>';
 
 
