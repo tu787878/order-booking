@@ -144,13 +144,13 @@ function get_shipping_fee()
 							if ($check_promotion == true && $promotion != null && $has_discount && $discount_cod == 'on' && floatval($discount_min) <= $total_all) :
 								$has_reduce	= true;
 								if ($type_promotion == '%') :
-									$reduce_percent = $promotion;
+									$reduce_percent = ds_normalize_discount_percent($promotion);
 									$temp_total 	= $total_all_use_coupon * floatval($promotion) / 100;
 									$total_all 		= $total_all - $temp_total;
 									$total_all_use_coupon = $total_all_use_coupon - $temp_total;
 									$reduce 		= ds_price_format_text_no_convert($temp_total);
 								else :
-									$reduce_percent = round($promotion / floatval($total_all_use_coupon) * 100);
+									$reduce_percent = ds_normalize_discount_percent(round($promotion / floatval($total_all_use_coupon) * 100));
 									$total_all 		= $total_all - floatval($promotion);
 									$total_all_use_coupon = $total_all_use_coupon - floatval($promotion);
 									$reduce 		= ds_price_format_text_no_convert($promotion);
@@ -350,13 +350,13 @@ function get_shipping_fee()
 						if ($check_promotion == true && $promotion != null && $has_discount && floatval($discount_min) <= $total_all) :
 							$has_reduce	= true;
 							if ($type_promotion == '%') :
-								$reduce_percent = $promotion;
+								$reduce_percent = ds_normalize_discount_percent($promotion);
 								$temp_total 	= $total_all_use_coupon * floatval($promotion) / 100;
 								$total_all 		= $total_all - $temp_total;
 								$total_all_use_coupon = $total_all_use_coupon - $temp_total;
 								$reduce 		= ds_price_format_text_no_convert($temp_total);
 							else :
-								$reduce_percent = round($promotion / floatval($total_all_use_coupon) * 100);
+								$reduce_percent = ds_normalize_discount_percent(round($promotion / floatval($total_all_use_coupon) * 100));
 								$total_all 		= $total_all - floatval($promotion);
 								$total_all_use_coupon = $total_all_use_coupon - floatval($promotion);
 								$reduce 		= ds_price_format_text_no_convert($promotion);
@@ -476,13 +476,13 @@ function get_shipping_fee()
 				if ($promotion_2 != null && $has_discount && floatval($discount_min) <= $total_all) :
 					$has_reduce			= true;
 					if ($type_promotion_2 == '%') :
-						$reduce_percent = $promotion_2;
+						$reduce_percent = ds_normalize_discount_percent($promotion_2);
 						$temp_total 	= $total_all_use_coupon * floatval($promotion_2) / 100;
 						$total_all 		= $total_all - $temp_total;
 						$total_all_use_coupon = $total_all_use_coupon - $temp_total;
 						$reduce 		= ds_price_format_text_no_convert($temp_total);
 					else :
-						$reduce_percent = round($promotion_2 / floatval($total_all_use_coupon) * 100);
+						$reduce_percent = ds_normalize_discount_percent(round($promotion_2 / floatval($total_all_use_coupon) * 100));
 						$total_all 		= $total_all - floatval($promotion_2);
 						$total_all_use_coupon = $total_all_use_coupon - floatval($promotion_2);
 						$reduce 		= ds_price_format_text_no_convert($promotion_2);

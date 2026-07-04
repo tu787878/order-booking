@@ -2258,7 +2258,7 @@ function send_mail_after_order($order_id)
     $html_file .= '<h2 style="line-height: 1.3;margin: 0;text-align: center;">' . ucfirst($method_text) . '</h2>';
     $html_file .= '</div>';
     $order_placed_at = get_the_date('d.m.Y', $order_id) . ' ' . get_the_time('H:i:s', $order_id);
-    $html_file .= '<div style="margin-top: 10px;padding-top: 6px;border-top: 1px dashed #000;text-align: center;"><p style="font-size: 12px;line-height: 1.4;margin: 0;color: #000000;">Bestellzeitpunkt: ' . $order_placed_at . '</p></div>';
+    $html_file .= '<h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">Bestellzeitpunkt: ' . $order_placed_at . '</h3>';
     $html_file .= '</body> </html>';
     $random_val = "order" . $order_id;
     //create example
@@ -2479,7 +2479,7 @@ function create_pool($pool, $order_id, $index, $total, $show_second_number, $sec
     $html_file .= '</div>';
     $html_file .= $data_pool;
     if ($order_placed_at !== '') {
-        $html_file .= '<div style="margin-top: 10px;padding-top: 6px;border-top: 1px dashed #000;text-align: center;"><p style="font-size: 12px;line-height: 1.4;margin: 0;color: #000000;">Bestellzeitpunkt: ' . $order_placed_at . '</p></div>';
+        $html_file .= '<h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">Bestellzeitpunkt: ' . $order_placed_at . '</h3>';
     }
     $html_file .= '</body> </html>';
 
@@ -3598,20 +3598,20 @@ function create_new_order($data, $status = 'processing', $transaction_id = null)
     }else{
         if ($promotion != null && $has_discount) :
             if ($type_promotion == '%') :
-                $reduce_percent = $promotion;
+                $reduce_percent = ds_normalize_discount_percent($promotion);
                 $temp_total = $total_all_use_coupon * floatval($reduce_percent) / 100;
                 $reduce = $temp_total;
                 $total_all = $total_all - $temp_total;
                 $total_all_use_coupon = $total_all_use_coupon - $temp_total;
             else :
-                $reduce_percent = round($promotion / floatval($total_all_use_coupon) * 100);
+                $reduce_percent = ds_normalize_discount_percent(round($promotion / floatval($total_all_use_coupon) * 100));
                 $reduce = $promotion;
                 $total_all = $total_all - floatval($promotion);
                 $total_all_use_coupon = $total_all_use_coupon - floatval($promotion);
 
             endif;
         endif;
-        $reduce_percent = ($reduce_percent > 100) ? 100 : $reduce_percent;
+        $reduce_percent = ds_normalize_discount_percent($reduce_percent);
         // add_post_meta($order_id,'has_discount',$has_discount);
         add_post_meta($order_id, 'reduce', $reduce);
         add_post_meta($order_id, 'reduce_percent', $reduce_percent . '%');
@@ -3671,6 +3671,18 @@ add_filter('pre_get_posts', function ($query) {
 }, 10, 2);
 
 // get_discount time shop
+function ds_normalize_discount_percent($percent)
+{
+    $percent = floatval($percent);
+    if ($percent < 0) {
+        return 0;
+    }
+    if ($percent > 100) {
+        return 100;
+    }
+    return $percent;
+}
+
 function is_discount_time($shoptime = null, $date = null, $method = "shipping")
 {
     date_default_timezone_set('Europe/Berlin');
@@ -3898,13 +3910,13 @@ function get_total_cart($shipping_method, $shipping_data, $coupon_value = null, 
                 if ($check_promotion == true && $promotion != null && $has_discount && $discount_cod == 'on') :
                     $has_reduce             = true;
                     if ($type_promotion == '%') :
-                        $reduce_percent = $promotion;
+                        $reduce_percent = ds_normalize_discount_percent($promotion);
                         $temp_total     = $total_all_use_coupon * floatval($promotion) / 100;
                         $total_all      = $total_all - $temp_total;
                         $total_all_use_coupon = $total_all_use_coupon - $temp_total;
                         $reduce         = ds_price_format_text_no_convert($temp_total);
                     else :
-                        $reduce_percent = round($promotion / floatval($total_all) * 100);
+                        $reduce_percent = ds_normalize_discount_percent(round($promotion / floatval($total_all) * 100));
                         $total_all      = $total_all - floatval($promotion);
                         $total_all_use_coupon = $total_all_use_coupon - floatval($promotion);
                         $reduce         = ds_price_format_text_no_convert($promotion);
@@ -3973,13 +3985,13 @@ function get_total_cart($shipping_method, $shipping_data, $coupon_value = null, 
             if ($check_promotion == true && $promotion != null && $has_discount && $discount_cod == 'on') :
                 $has_reduce             = true;
                 if ($type_promotion == '%') :
-                    $reduce_percent = $promotion;
+                    $reduce_percent = ds_normalize_discount_percent($promotion);
                     $temp_total     = $total_all_use_coupon * floatval($promotion) / 100;
                     $total_all      = $total_all - $temp_total;
                     $total_all_use_coupon = $total_all_use_coupon - $temp_total;
                     $reduce         = ds_price_format_text_no_convert($temp_total);
                 else :
-                    $reduce_percent = round($promotion / floatval($total_all) * 100);
+                    $reduce_percent = ds_normalize_discount_percent(round($promotion / floatval($total_all) * 100));
                     $total_all      = $total_all - floatval($promotion);
                     $total_all_use_coupon = $total_all_use_coupon - floatval($promotion);
                     $reduce         = ds_price_format_text_no_convert($promotion);
@@ -3998,13 +4010,13 @@ function get_total_cart($shipping_method, $shipping_data, $coupon_value = null, 
         if ($check_promotion == true && $promotion != null && $has_discount) :
             $has_reduce         = true;
             if ($type_promotion == '%') :
-                $reduce_percent = $promotion;
+                $reduce_percent = ds_normalize_discount_percent($promotion);
                 $temp_total     = $total_all_use_coupon * floatval($promotion) / 100;
                 $total_all      = $total_all - $temp_total;
                 $total_all_use_coupon = $total_all_use_coupon - $temp_total;
                 $reduce         = ds_price_format_text_no_convert($temp_total);
             else :
-                $reduce_percent = round($promotion / floatval($total_all) * 100);
+                $reduce_percent = ds_normalize_discount_percent(round($promotion / floatval($total_all) * 100));
                 $total_all      = $total_all_use_coupon - floatval($promotion);
                 $total_all_use_coupon = $total_all_use_coupon - floatval($promotion);
                 $reduce         = ds_price_format_text_no_convert($promotion);
