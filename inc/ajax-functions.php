@@ -1000,7 +1000,7 @@ function check_time_available()
 	}else{
 		if ($check_promotion == true && $promotion_2 != null && $has_discount) :
 			$has_reduce			= true;
-			if ($type_promotion == '%') :
+			if ($type_promotion_2 == '%') :
 				$reduce_percent = $promotion_2;
 				$temp_total 	= $total_cart_use_coupon * floatval($promotion_2) / 100;
 				$total_all 		= $total_all - $temp_total;
