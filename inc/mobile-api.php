@@ -1,5 +1,49 @@
 <?php
 
+/**
+ * 256-bit symmetric key shared with the calling site.
+ * The secret string MUST be byte-for-byte identical on both sites.
+ */
+function myplugin_auth_key()
+{
+    $secret = '8764ecfe65173f70cd341552ab5d0bae6d5a0f09d2e532723e9f13c4a645ba42';
+    return hash('sha256', $secret, true);
+}
+
+/**
+ * Decrypt an auth code produced by the calling site.
+ * Returns array('u' => username, 'p' => password) on success, or false on
+ * failure / tampering.
+ *
+ * Code format (before base64url): iv(12 bytes) || gcm_tag(16 bytes) || ciphertext
+ * Encoding: base64url (+/ -> -_, '=' padding stripped)
+ * Plaintext: JSON {"u":"<username>","p":"<password>"}
+ */
+function myplugin_decrypt_code($code)
+{
+    $blob = base64_decode(strtr($code, '-_', '+/'));
+    if ($blob === false || strlen($blob) < 28) {
+        return false;
+    }
+
+    $iv         = substr($blob, 0, 12);
+    $tag        = substr($blob, 12, 16);
+    $ciphertext = substr($blob, 28);
+    $key        = myplugin_auth_key();
+
+    $plaintext = openssl_decrypt($ciphertext, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
+    if ($plaintext === false) {
+        return false;
+    }
+
+    $data = json_decode($plaintext, true);
+    if (!is_array($data) || !isset($data['u'], $data['p'])) {
+        return false;
+    }
+
+    return $data;
+}
+
 // Test
 add_action('rest_api_init', function () {
 
@@ -16,10 +60,11 @@ function manage_change_option()
 
     parse_str($data, $data);
     $code = $data["code"];
-    $code = base64_decode($code);
-    $arr = explode(".",$code);
+    $creds = myplugin_decrypt_code($code);
     
-    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
+    $check = $creds
+        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
+        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
 
     if(!is_wp_error( $check )){
         $result = array('status' => 'success', 'code'=>0, 'data'=>$data["data"]);
@@ -38,20 +83,83 @@ add_action('rest_api_init', function () {
         'callback' => 'manage_save_popup'
     ));
 });
+// Decode a base64 data-URI (e.g. "data:image/png;base64,....") and create a
+// WordPress attachment. Returns the attachment ID on success, or 0 on failure.
+if ( ! function_exists( 'save_image2' ) ) {
+    function save_image2( $base64, $title = '' )
+    {
+        if ( empty( $base64 ) ) {
+            return 0;
+        }
+
+        // Split off the "data:image/xxx;base64," prefix when present.
+        if ( strpos( $base64, ',' ) !== false ) {
+            list( $meta, $content ) = explode( ',', $base64, 2 );
+        } else {
+            $meta    = '';
+            $content = $base64;
+        }
+
+        // Determine the file extension from the mime type in the prefix.
+        $ext = 'png';
+        if ( preg_match( '#data:image/([a-zA-Z0-9\.\+\-]+);base64#', $meta, $m ) ) {
+            $ext = strtolower( $m[1] );
+            if ( 'jpeg' === $ext ) {
+                $ext = 'jpg';
+            }
+        }
+
+        $decoded = base64_decode( $content, true );
+        if ( false === $decoded ) {
+            return 0;
+        }
+
+        $filename = ( $title ? sanitize_file_name( $title ) : 'popup-' . uniqid() ) . '.' . $ext;
+
+        // Write the file into the uploads directory.
+        $upload = wp_upload_bits( $filename, null, $decoded );
+        if ( ! empty( $upload['error'] ) ) {
+            return 0;
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+
+        $filetype   = wp_check_filetype( $upload['file'], null );
+        $attachment = array(
+            'guid'           => $upload['url'],
+            'post_mime_type' => $filetype['type'],
+            'post_title'     => preg_replace( '/\.[^.]+$/', '', basename( $upload['file'] ) ),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+        );
+
+        $attach_id = wp_insert_attachment( $attachment, $upload['file'] );
+        if ( is_wp_error( $attach_id ) || ! $attach_id ) {
+            return 0;
+        }
+
+        $attach_data = wp_generate_attachment_metadata( $attach_id, $upload['file'] );
+        wp_update_attachment_metadata( $attach_id, $attach_data );
+
+        return $attach_id;
+    }
+}
+
 function manage_save_popup()
 {
 
-    // authentication 
+    // authentication
     $data = file_get_contents('php://input');
 
     parse_str($data, $data);
     $code = $data["code"];
     $base64 = $data["base64"];
 
-    $code = base64_decode($code);
-    $arr = explode(".",$code);
+    $creds = myplugin_decrypt_code($code);
     
-    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
+    $check = $creds
+        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
+        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
 
     if(!is_wp_error( $check )){
         $image_id = save_image2($base64, '');
@@ -89,10 +197,11 @@ function manage_get_version_plugin()
     // authentication 
     $code = $_GET['code'];
 
-    $code = base64_decode($code);
-    $arr = explode(".",$code);
+    $creds = myplugin_decrypt_code($code);
     
-    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
+    $check = $creds
+        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
+        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
 
     if(!is_wp_error( $check )){
         $result = array('status' => 'success', 'code'=>0, 'data' => getVersion());
@@ -118,10 +227,11 @@ function manage_get_popup()
     $code = $_GET['code'];
     $option = $_GET['option'];
 
-    $code = base64_decode($code);
-    $arr = explode(".",$code);
+    $creds = myplugin_decrypt_code($code);
     
-    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
+    $check = $creds
+        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
+        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
 
     if(!is_wp_error( $check )){
         $image_id = get_option($option);
@@ -155,10 +265,11 @@ function manage_get_option()
     $code = $_GET['code'];
     $option = $_GET['option'];
 
-    $code = base64_decode($code);
-    $arr = explode(".",$code);
+    $creds = myplugin_decrypt_code($code);
     
-    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
+    $check = $creds
+        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
+        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
 
     if(!is_wp_error( $check )){
         $data = get_option($option);
