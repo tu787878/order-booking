@@ -44,6 +44,18 @@ function myplugin_decrypt_code($code)
     return $data;
 }
 
+/**
+ * v2 authentication: decrypt the AES-256-GCM code and authenticate.
+ * Returns a WP_User on success or a WP_Error on failure / tampering.
+ */
+function manage_authenticate_v2($code)
+{
+    $creds = myplugin_decrypt_code($code);
+    return $creds
+        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
+        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
+}
+
 // Test
 add_action('rest_api_init', function () {
 
@@ -60,11 +72,10 @@ function manage_change_option()
 
     parse_str($data, $data);
     $code = $data["code"];
-    $creds = myplugin_decrypt_code($code);
-    
-    $check = $creds
-        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
-        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
+    $code = base64_decode($code);
+    $arr = explode(".",$code);
+
+    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
 
     if(!is_wp_error( $check )){
         $result = array('status' => 'success', 'code'=>0, 'data'=>$data["data"]);
@@ -155,11 +166,10 @@ function manage_save_popup()
     $code = $data["code"];
     $base64 = $data["base64"];
 
-    $creds = myplugin_decrypt_code($code);
-    
-    $check = $creds
-        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
-        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
+    $code = base64_decode($code);
+    $arr = explode(".",$code);
+
+    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
 
     if(!is_wp_error( $check )){
         $image_id = save_image2($base64, '');
@@ -197,11 +207,10 @@ function manage_get_version_plugin()
     // authentication 
     $code = $_GET['code'];
 
-    $creds = myplugin_decrypt_code($code);
-    
-    $check = $creds
-        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
-        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
+    $code = base64_decode($code);
+    $arr = explode(".",$code);
+
+    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
 
     if(!is_wp_error( $check )){
         $result = array('status' => 'success', 'code'=>0, 'data' => getVersion());
@@ -227,11 +236,10 @@ function manage_get_popup()
     $code = $_GET['code'];
     $option = $_GET['option'];
 
-    $creds = myplugin_decrypt_code($code);
-    
-    $check = $creds
-        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
-        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
+    $code = base64_decode($code);
+    $arr = explode(".",$code);
+
+    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
 
     if(!is_wp_error( $check )){
         $image_id = get_option($option);
@@ -265,11 +273,10 @@ function manage_get_option()
     $code = $_GET['code'];
     $option = $_GET['option'];
 
-    $creds = myplugin_decrypt_code($code);
-    
-    $check = $creds
-        ? wp_authenticate_username_password( NULL, $creds['u'], $creds['p'] )
-        : new WP_Error( 'invalid_code', 'Invalid authentication code' );
+    $code = base64_decode($code);
+    $arr = explode(".",$code);
+
+    $check = wp_authenticate_username_password( NULL, $arr[0], $arr[1] );
 
     if(!is_wp_error( $check )){
         $data = get_option($option);
@@ -279,6 +286,132 @@ function manage_get_option()
     }
     $result = array('status' => 'fail', 'code'=>1);
     return $result;
+}
+
+//////////////////////////////////////////////////////////////////////
+// API v2 — AES-256-GCM authenticated code (mirrors v1; v1 to be removed later)
+//////////////////////////////////////////////////////////////////////
+
+add_action('rest_api_init', function () {
+
+    register_rest_route('ordertcg/v2', '/manage/change_option', array(
+        'methods' => 'POST',
+        'callback' => 'manage_change_option_v2'
+    ));
+});
+function manage_change_option_v2()
+{
+    $data = file_get_contents('php://input');
+    parse_str($data, $data);
+
+    $check = manage_authenticate_v2($data["code"]);
+
+    if(!is_wp_error( $check )){
+        update_option($data["option"], $data["data"]);
+        return array('status' => 'success', 'code'=>0, 'data'=>$data["data"]);
+    }
+    return array('status' => 'fail', 'code'=>1);
+}
+
+add_action('rest_api_init', function () {
+
+    register_rest_route('ordertcg/v2', '/manage/save_popup', array(
+        'methods' => 'POST',
+        'callback' => 'manage_save_popup_v2'
+    ));
+});
+function manage_save_popup_v2()
+{
+    $data = file_get_contents('php://input');
+    parse_str($data, $data);
+    $base64 = $data["base64"];
+
+    $check = manage_authenticate_v2($data["code"]);
+
+    if(!is_wp_error( $check )){
+        $image_id = save_image2($base64, '');
+        $pos  = strpos($base64, ';');
+        $type = explode(':', substr($base64, 0, $pos))[1];
+        $output = "";
+        if (intval($image_id) > 0) {
+            update_option('ds_popup', $image_id);
+            $url = wp_get_attachment_image_src( $image_id, 'medium', false );
+            $output = is_ssl() ? preg_replace( "^http:", "https:", $url[0] ) : $url[0] ;
+            $image = '<img id="myprefix-preview-image-popup" src="' . $output . '" />';
+        } else {
+            $image_id2 = get_option('ds_popup');
+            $url = wp_get_attachment_image_src( $image_id2, 'medium', false );
+            $output = is_ssl() ? preg_replace( "^http:", "https:", $url[0] ) : $url[0] ;
+            $image = '<img id="myprefix-preview-image-popup" src="' . $output . '" />';
+        }
+        return array('status' => 'success', 'code'=>0, 'data' => $image, 'debug'=>explode("/", $type)[1]);
+    }
+    return array('status' => 'fail', 'code'=>1);
+}
+
+add_action('rest_api_init', function () {
+
+    register_rest_route('ordertcg/v2', '/manage/get_version_plugin', array(
+        'methods' => 'GET',
+        'callback' => 'manage_get_version_plugin_v2'
+    ));
+});
+function manage_get_version_plugin_v2()
+{
+    $check = manage_authenticate_v2($_GET['code']);
+
+    if(!is_wp_error( $check )){
+        return array('status' => 'success', 'code'=>0, 'data' => getVersion());
+    }
+    return array('status' => 'fail', 'code'=>1);
+}
+
+add_action('rest_api_init', function () {
+
+    register_rest_route('ordertcg/v2', '/manage/get_popup', array(
+        'methods' => 'GET',
+        'callback' => 'manage_get_popup_v2'
+    ));
+});
+function manage_get_popup_v2()
+{
+    $option = $_GET['option'];
+
+    $check = manage_authenticate_v2($_GET['code']);
+
+    if(!is_wp_error( $check )){
+        $image_id = get_option($option);
+        $output = "";
+        if (intval($image_id) > 0) {
+            $url = wp_get_attachment_image_src( $image_id, 'medium', false );
+            $output = is_ssl() ? preg_replace( "^http:", "https:", $url[0] ) : $url[0] ;
+            $image = '<img id="myprefix-preview-image-popup" src="' . $output . '" />';
+        } else {
+            $image = '<img id="myprefix-preview-image-popup" src="' . BOOKING_ORDER_PATH . '/img/no_img.jpg' . '" />';
+        }
+        return array('status' => 'success', 'code'=>0, 'data' => $image);
+    }
+    return array('status' => 'fail', 'code'=>1);
+}
+
+add_action('rest_api_init', function () {
+
+    register_rest_route('ordertcg/v2', '/manage/get_option', array(
+        'methods' => 'GET',
+        'callback' => 'manage_get_option_v2'
+    ));
+});
+function manage_get_option_v2()
+{
+    $option = $_GET['option'];
+
+    $check = manage_authenticate_v2($_GET['code']);
+
+    if(!is_wp_error( $check )){
+        $data = get_option($option);
+        return array('status' => 'success', 'code'=>0, 'data'=>$data);
+    }
+    return array('status' => 'fail', 'code'=>1);
 }
 
 //////////////////////////////////////////////////////////////////////
