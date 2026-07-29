@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.8.0
+ * Version: 1.8.1
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -12,7 +12,7 @@ date_default_timezone_set('Europe/Berlin');
 
 // Plugin configuration
 $plugin_config = [
-    'version' => '1.7.2',
+    'version' => '1.8.1',
     'plugin_file' => __FILE__,
     'plugin_dir' => plugin_dir_path(__FILE__),
     'plugin_url' => plugin_dir_url(__FILE__),
@@ -2257,8 +2257,10 @@ function send_mail_after_order($order_id)
     $html_file .= '</b></p>';
     $html_file .= '<h2 style="line-height: 1.3;margin: 0;text-align: center;">' . ucfirst($method_text) . '</h2>';
     $html_file .= '</div>';
-    $order_placed_at = get_the_date('d.m.Y', $order_id) . ' ' . get_the_time('H:i:s', $order_id);
-    $html_file .= '<h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">Bestellzeitpunkt: ' . $order_placed_at . '</h3>';
+    if (get_option('show_order_placed_at', '1') != '0') {
+        $order_placed_at = get_the_date('d.m.Y', $order_id) . ' ' . get_the_time('H:i:s', $order_id);
+        $html_file .= '<h3 style="text-align: center;margin-top: 0;margin-bottom: 10px;">Bestellzeitpunkt: ' . $order_placed_at . '</h3>';
+    }
     $html_file .= '</body> </html>';
     $random_val = "order" . $order_id;
     //create example
@@ -2419,7 +2421,7 @@ function send_mail_after_order($order_id)
                     $data_pool .= '</div>';
                 }
             }
-            $order_placed_at_pool = get_the_date('d.m.Y', $order_id) . ' ' . get_the_time('H:i:s', $order_id);
+            $order_placed_at_pool = (get_option('show_order_placed_at', '1') != '0') ? get_the_date('d.m.Y', $order_id) . ' ' . get_the_time('H:i:s', $order_id) : '';
             $attachments[] = create_pool($pool, $random_val, $i++, $total_pool, $show_second_number, $second_order_number, $customer_name1, $customer_name2, $data_pool, $order_time_info2, $order_placed_at_pool);
         }
     }

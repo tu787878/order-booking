@@ -160,6 +160,9 @@ function general_booking_setting()
 		$enable_pool = $_POST['enable_pool'];
 		update_option('enable_pool', $enable_pool, 'yes');
 
+		$show_order_placed_at = isset($_POST['show_order_placed_at']) ? $_POST['show_order_placed_at'] : '1';
+		update_option('show_order_placed_at', $show_order_placed_at, 'yes');
+
 		$homepage_popup = $_POST['homepage_popup'];
 		update_option('homepage_popup', $homepage_popup, 'yes');
 		
@@ -995,6 +998,8 @@ function general_booking_setting()
 	//second order
 	$show_second_number = get_option('show_second_number');
 	$enable_pool = get_option('enable_pool');
+	//Bestellzeitpunkt auf dem Bon (standardmäßig An)
+	$show_order_placed_at = get_option('show_order_placed_at', '1');
 	$homepage_popup = get_option('homepage_popup');
 	$current_date = date('Ymd');
 	$total_order_in_date = (get_option('total_order_' . $current_date) != "") ? intval(get_option('total_order_' . $current_date)) : 0;
@@ -1243,6 +1248,11 @@ function general_booking_setting()
 					<div class="radio-wrap">
 						<label><input type="radio" name="enable_pool" value="0" <?php if ($enable_pool != "1") echo 'checked'; ?>>Aus</label>
 						<label><input type="radio" name="enable_pool" value="1" <?php if ($enable_pool == "1") echo 'checked'; ?>>An</label>
+					</div>
+			<h2><?php _e("Bestellzeitpunkt auf dem Bon anzeigen?"); ?></h2>
+					<div class="radio-wrap">
+						<label><input type="radio" name="show_order_placed_at" value="0" <?php if ($show_order_placed_at == "0") echo 'checked'; ?>>Aus</label>
+						<label><input type="radio" name="show_order_placed_at" value="1" <?php if ($show_order_placed_at != "0") echo 'checked'; ?>>An</label>
 					</div>
 				<h2><?php _e("Lieferung & Abholung Einstellungen") ?></h2>
 
