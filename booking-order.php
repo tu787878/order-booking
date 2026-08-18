@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.8.1
+ * Version: 1.8.2
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -2608,6 +2608,18 @@ function rpt_add_role_caps()
     $role->add_cap('upload_files');
     $role->add_cap('manage_support-functions');
 }
+
+/**
+ * Allow users who manage product categories to use the taxonomy order screen.
+ *
+ * Category Order and Taxonomy Terms Order uses this capability for its
+ * drag-and-drop interface. The shop role already owns manage_product-cats.
+ */
+function ds_product_category_order_capability($capability)
+{
+    return 'manage_product-cats';
+}
+add_filter('tto/admin/plugin_options/capability', 'ds_product_category_order_capability');
 //register template part function
 function dsmart_locate_template($template_name, $template_path = '', $default_path = '')
 {
