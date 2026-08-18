@@ -2610,16 +2610,39 @@ function rpt_add_role_caps()
 }
 
 /**
- * Allow users who manage product categories to use the taxonomy order screen.
+ * Let product category managers use the taxonomy drag-and-drop screen.
  *
- * Category Order and Taxonomy Terms Order uses this capability for its
- * drag-and-drop interface. The shop role already owns manage_product-cats.
+ * Category Order and Taxonomy Terms Order reads this value from tto_options
+ * when registering its Taxonomy Order menus. The shop role already owns the
+ * manage_product-cats capability.
  */
-function ds_product_category_order_capability($capability)
+function ds_product_category_order_options($options)
 {
-    return 'manage_product-cats';
+    if (!is_array($options)) {
+        $options = array();
+    }
+
+    $options['capability'] = 'manage_product-cats';
+
+    return $options;
 }
-add_filter('tto/admin/plugin_options/capability', 'ds_product_category_order_capability');
+add_filter('option_tto_options', 'ds_product_category_order_options');
+
+/**
+ * Keep the custom capability visible in the ordering plugin's settings.
+ */
+function ds_product_category_order_capability_option()
+{
+    $options = get_option('tto_options', array());
+    $selected = isset($options['capability']) && $options['capability'] === 'manage_product-cats';
+
+    printf(
+        '<option value="manage_product-cats"%s>%s</option>',
+        selected($selected, true, false),
+        esc_html__('Product Category Manager', 'order-booking')
+    );
+}
+add_action('tto/admin/plugin_options/capability', 'ds_product_category_order_capability_option');
 //register template part function
 function dsmart_locate_template($template_name, $template_path = '', $default_path = '')
 {
