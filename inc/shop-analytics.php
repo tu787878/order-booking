@@ -4,7 +4,7 @@ defined('ABSPATH') || exit;
 
 function dsmart_analytics_allowed() {
     $roles = (array) wp_get_current_user()->roles;
-    return is_user_logged_in() && (in_array('shop', $roles, true) || in_array('administrator', $roles, true));
+    return is_user_logged_in() && (current_user_can('edit_products') || in_array('shop', $roles, true) || in_array('administrator', $roles, true));
 }
 
 function dsmart_analytics_filters($input) {
@@ -136,3 +136,18 @@ function dsmart_analytics_export() {
     exit;
 }
 add_action('admin_post_dsmart_analytics_export', 'dsmart_analytics_export');
+
+/** Expose the same report in the WordPress product settings area. */
+function dsmart_analytics_admin_menu() {
+    add_submenu_page('edit.php?post_type=product', 'Statistik & Analyse', 'Statistik & Analyse', 'edit_products', 'dsmart-shop-analytics', 'dsmart_analytics_admin_page');
+}
+add_action('admin_menu', 'dsmart_analytics_admin_menu');
+
+function dsmart_analytics_admin_page() {
+    if (!current_user_can('edit_products')) {
+        wp_die(esc_html__('You cannot access shop reports.', 'dsmart'), '', array('response' => 403));
+    }
+    echo '<div class="wrap">';
+    require dirname(__DIR__) . '/templates-part/shop-statistics.php';
+    echo '</div>';
+}

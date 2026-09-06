@@ -2,6 +2,7 @@
 // Standalone regression checks: php tests/shop-analytics-test.php [export]
 define('ABSPATH', __DIR__);
 function add_action() {}
+function current_user_can($capability) { return false; }
 function get_option($key) { return '2'; }
 function __($s) { return $s; }
 function esc_html__($s) { return $s; }

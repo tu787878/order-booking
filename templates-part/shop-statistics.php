@@ -6,6 +6,8 @@ if (is_wp_error($f)) {
     $f = dsmart_analytics_filters(array());
 }
 $r = dsmart_analytics_report($f);
+$analytics_admin = is_admin();
+$analytics_url = $analytics_admin ? admin_url('edit.php?post_type=product&page=dsmart-shop-analytics') : get_permalink();
 $export = wp_nonce_url(add_query_arg(array_merge($f, array('action' => 'dsmart_analytics_export')), admin_url('admin-post.php')), 'dsmart_analytics_export');
 $money = function ($value) { return wp_strip_all_tags(ds_price_format_text_with_symbol($value, '1')); };
 $weekdays = array(__('Monday', 'dsmart'), __('Tuesday', 'dsmart'), __('Wednesday', 'dsmart'), __('Thursday', 'dsmart'), __('Friday', 'dsmart'), __('Saturday', 'dsmart'), __('Sunday', 'dsmart'));
@@ -13,9 +15,10 @@ $weekdays = array(__('Monday', 'dsmart'), __('Tuesday', 'dsmart'), __('Wednesday
 <link rel="stylesheet" href="<?php echo esc_url(plugins_url('../css/shop-analytics.css', __FILE__)); ?>">
 <section class="ds-analytics">
     <div class="ds-analytics-heading"><div><h2><?php esc_html_e('Statistics & analysis', 'dsmart'); ?></h2><p><?php esc_html_e('Understand your products and busiest ordering times.', 'dsmart'); ?></p></div><a class="dsmart-button" href="<?php echo esc_url($export); ?>"><?php esc_html_e('Export to Excel', 'dsmart'); ?></a></div>
-    <form method="get" action="<?php echo esc_url(get_permalink()); ?>" class="ds-analytics-filters">
+    <form method="get" action="<?php echo esc_url($analytics_url); ?>" class="ds-analytics-filters">
         <input type="hidden" name="section" value="statistics">
-        <?php if (!get_option('permalink_structure')) : ?><input type="hidden" name="page_id" value="<?php echo esc_attr(get_queried_object_id()); ?>"><?php endif; ?>
+        <?php if ($analytics_admin) : ?><input type="hidden" name="post_type" value="product"><input type="hidden" name="page" value="dsmart-shop-analytics"><?php endif; ?>
+        <?php if (!$analytics_admin && !get_option('permalink_structure')) : ?><input type="hidden" name="page_id" value="<?php echo esc_attr(get_queried_object_id()); ?>"><?php endif; ?>
         <label><?php esc_html_e('Date range', 'dsmart'); ?><select name="period" id="ds-period">
         <?php foreach (array('1' => __('Today', 'dsmart'), 'yesterday' => __('Yesterday', 'dsmart'), '7' => __('Last 7 days', 'dsmart'), '30' => __('Last 30 days', 'dsmart'), '365' => __('Last 365 days', 'dsmart'), 'year' => __('Last calendar year', 'dsmart'), 'custom' => __('Custom range', 'dsmart')) as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($f['period'], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select></label>
         <label><?php esc_html_e('From', 'dsmart'); ?><input type="date" name="from" value="<?php echo esc_attr($f['from']); ?>" required></label>
@@ -24,7 +27,7 @@ $weekdays = array(__('Monday', 'dsmart'), __('Tuesday', 'dsmart'), __('Wednesday
         <label><?php echo esc_html($control[0]); ?><select name="<?php echo esc_attr($key); ?>"><?php foreach ($control[1] as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($f[$key], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select></label>
         <?php endforeach; ?>
         <label><?php esc_html_e('Search products', 'dsmart'); ?><input type="search" name="search" value="<?php echo esc_attr($f['search']); ?>"></label>
-        <button class="dsmart-button" type="submit"><?php esc_html_e('Apply filters', 'dsmart'); ?></button><a href="<?php echo esc_url(add_query_arg('section', 'statistics', get_permalink())); ?>"><?php esc_html_e('Reset', 'dsmart'); ?></a>
+        <button class="dsmart-button" type="submit"><?php esc_html_e('Apply filters', 'dsmart'); ?></button><a href="<?php echo esc_url(add_query_arg('section', 'statistics', $analytics_url)); ?>"><?php esc_html_e('Reset', 'dsmart'); ?></a>
     </form>
     <p class="ds-analytics-note"><?php echo esc_html($f['from'] . ' – ' . $f['to'] . ' · ' . wp_timezone_string()); ?>. <?php esc_html_e('Dates include both endpoints and use order creation time. Product search affects the product table and its export only. Totals cover all orders matching date, status and fulfilment.', 'dsmart'); ?></p>
     <div class="ds-analytics-cards">
@@ -40,7 +43,7 @@ $weekdays = array(__('Monday', 'dsmart'), __('Tuesday', 'dsmart'), __('Wednesday
         foreach (array_slice($r['products'], ($page - 1) * 25, 25) as $p) : ?><tr><th scope="row"><?php echo esc_html($p['name']); ?></th><td><?php echo esc_html($p['quantity']); ?></td><td><?php echo esc_html($p['orders']); ?></td><td><?php $pop = $r['orders'] ? round(100 * $p['orders'] / $r['orders'], 1) : 0; echo esc_html($pop . '%'); ?><meter min="0" max="100" value="<?php echo esc_attr($pop); ?>" aria-label="<?php esc_attr_e('Popularity', 'dsmart'); ?>"></meter></td><td><?php echo esc_html($money($p['revenue'])); ?></td><td><?php echo esc_html($p['shipping']); ?></td><td><?php echo esc_html($p['direct']); ?></td><td><?php echo esc_html($p['unknown']); ?></td><td><?php echo esc_html($p['last']); ?></td></tr><?php endforeach; ?>
         <?php if (!$r['products']) : ?><tr><td colspan="9"><?php esc_html_e('No products match these filters.', 'dsmart'); ?></td></tr><?php endif; ?>
         </tbody></table></div>
-        <nav class="ds-analytics-pagination" aria-label="<?php esc_attr_e('Product pages', 'dsmart'); ?>"><?php echo esc_html(sprintf(__('Page %1$d of %2$d · %3$d products', 'dsmart'), $page, $pages, count($r['products']))); ?> <?php foreach (array($page - 1 => __('Previous', 'dsmart'), $page + 1 => __('Next', 'dsmart')) as $target => $label) { if ($target >= 1 && $target <= $pages) { echo '<a href="' . esc_url(add_query_arg(array_merge($f, array('section' => 'statistics', 'product_page' => $target)), get_permalink())) . '">' . esc_html($label) . '</a>'; } } ?></nav>
+        <nav class="ds-analytics-pagination" aria-label="<?php esc_attr_e('Product pages', 'dsmart'); ?>"><?php echo esc_html(sprintf(__('Page %1$d of %2$d · %3$d products', 'dsmart'), $page, $pages, count($r['products']))); ?> <?php foreach (array($page - 1 => __('Previous', 'dsmart'), $page + 1 => __('Next', 'dsmart')) as $target => $label) { if ($target >= 1 && $target <= $pages) { echo '<a href="' . esc_url(add_query_arg(array_merge($f, array('section' => 'statistics', 'product_page' => $target)), $analytics_url)) . '">' . esc_html($label) . '</a>'; } } ?></nav>
     </div>
     <div id="ds-time" role="tabpanel" aria-labelledby="ds-time-tab" hidden>
         <h3><?php esc_html_e('When customers order', 'dsmart'); ?></h3>

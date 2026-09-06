@@ -1014,6 +1014,7 @@ function general_booking_setting()
 	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
 	<div class="wrap">
 		<h1><?php _e('Einstellungen'); ?></h1>
+        <p><a class="button button-secondary" href="<?php echo esc_url(admin_url('edit.php?post_type=product&page=dsmart-shop-analytics')); ?>">Statistik &amp; Analyse</a></p>
 		<form action="#" class="dsmart-form" method="POST" novalidate>
 			<ul class="ds-list-tab">
 				<li class="active"><a href="#tab-1">Shop Stil</a></li>

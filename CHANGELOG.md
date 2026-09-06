@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.4
+- Added product statistics, date filters, sorting, time and day analysis, and formatted Excel export from shop settings.
+
 ## 1.8.1
 - Added a setting to show or hide the `Bestellzeitpunkt` (order placed time) on the printed receipt and pool receipts, found under *Pool Druckverteilung* in tab 4 of the plugin settings. Enabled by default, including on existing installs.
 - Synced the stale `$plugin_config['version']` value with the plugin header version (the value is informational; the updater reads the header).
