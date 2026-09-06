@@ -1,84 +1,54 @@
-<?php $date_query = array();
-$meta_query = array();
-if(isset($_GET['date_from']) && $_GET['date_from'] != ""){
-	$date_from = $_GET['date_from'];
-	$date_from_data = explode('-', $date_from);
-	$date_query['after'] = array(
-      'year'  => $date_from_data[2],                  
-      'month' => $date_from_data[1],                     
-      'day'   => $date_from_data[0],                    
-    );
-}else{
-	$date_from = "";
+<?php
+if (!defined('ABSPATH') || !dsmart_analytics_allowed()) { return; }
+$f = dsmart_analytics_filters($_GET);
+if (is_wp_error($f)) {
+    echo '<p role="alert">' . esc_html($f->get_error_message()) . '</p>';
+    $f = dsmart_analytics_filters(array());
 }
-if(isset($_GET['date_to']) && $_GET['date_to'] != ""){
-	$date_to = $_GET['date_to'];
-	$date_to_data = explode('-', $date_to);
-	$date_query['before'] = array(
-      'year'  => $date_to_data[2],                  
-      'month' => $date_to_data[1],                     
-      'day'   => $date_to_data[0],                    
-    );
-}else{
-	$date_to = "";
-}
-if(count($date_query) > 0){
-	$date_query['inclusive'] = true;
-	$date_query['relation'] = 'AND';
-}else{
-	$date_query = null;
-}
-global $wp_query;?>
-<h4 class="dsmart-title"><?php _e("Statistic"); ?></h4>
-<div class="dsmart-filter">
-	<form method="GET" action="<?php echo ds_merge_querystring(remove_query_arg(array('date_from','date_to'))); ?>">
-		<input type="text" name="date_from" class="dsmart-field dsmart-datepicker" placeholder="<?php _e("From date") ?>" value="<?php echo $date_from ?>" autocomplete="off" />
-		<input type="text" name="date_to" class="dsmart-field dsmart-datepicker" placeholder="<?php _e("to date") ?>" value="<?php echo $date_to ?>" autocomplete="off" />
-		<input type="hidden" name="section" value="statistics"/>
-		<button type="submit" class="dsmart-button"><?php _e("Filter") ?></button>
-	</form>
-</div>
-<?php 
-$wp_query  = new WP_Query( array(
-    'post_type'      => 'orders',
-    'post_status'   => 'publish',
-    'posts_per_page' => -1,
-    'order'          => 'desc',
-    'orderby' => 'date',
-    'date_query' => $date_query,
-    'meta_query' => array(
-    	array(
-    		'key'  => 'status',
-        	'value'		=> 'completed',
-        	'compare' => 'LIKE',
-    	)
-    )
-));
-$total_all = 0;
-if ($wp_query->have_posts()):
-	while ($wp_query->have_posts()) : $wp_query->the_post(); 
-		$currency = dsmart_field('currency');
-        $total = dsmart_field('total');
-        $status = dsmart_field('status');
-	    $price_after_change = ds_convert_currency_price($currency,$total);  
-	    $total_all = $total_all + $price_after_change;      
-	endwhile;wp_reset_query();
-endif; ?>
-<div class="dsmart-table">
-	<table class="table">
-		<thead>
-			<tr>
-                <th></th>
-                <th><?php _e('Total orders') ?></th>
-                <th><?php _e('Total') ?></th>
-            </tr>
-		</thead>
-		<tbody>
-			<tr>
-				<td><?php _e("Revenue") ?></td>
-				<td><?php _e($wp_query->post_count.' orders'); ?></td>
-				<td><?php echo ds_price_format_text_with_symbol($total_all,"1"); ?></td>
-			</tr>
-		</tbody>
-	</table>
-</div>
+$r = dsmart_analytics_report($f);
+$export = wp_nonce_url(add_query_arg(array_merge($f, array('action' => 'dsmart_analytics_export')), admin_url('admin-post.php')), 'dsmart_analytics_export');
+$money = function ($value) { return wp_strip_all_tags(ds_price_format_text_with_symbol($value, '1')); };
+$weekdays = array(__('Monday', 'dsmart'), __('Tuesday', 'dsmart'), __('Wednesday', 'dsmart'), __('Thursday', 'dsmart'), __('Friday', 'dsmart'), __('Saturday', 'dsmart'), __('Sunday', 'dsmart'));
+?>
+<link rel="stylesheet" href="<?php echo esc_url(plugins_url('../css/shop-analytics.css', __FILE__)); ?>">
+<section class="ds-analytics">
+    <div class="ds-analytics-heading"><div><h2><?php esc_html_e('Statistics & analysis', 'dsmart'); ?></h2><p><?php esc_html_e('Understand your products and busiest ordering times.', 'dsmart'); ?></p></div><a class="dsmart-button" href="<?php echo esc_url($export); ?>"><?php esc_html_e('Export to Excel', 'dsmart'); ?></a></div>
+    <form method="get" action="<?php echo esc_url(get_permalink()); ?>" class="ds-analytics-filters">
+        <input type="hidden" name="section" value="statistics">
+        <?php if (!get_option('permalink_structure')) : ?><input type="hidden" name="page_id" value="<?php echo esc_attr(get_queried_object_id()); ?>"><?php endif; ?>
+        <label><?php esc_html_e('Date range', 'dsmart'); ?><select name="period" id="ds-period">
+        <?php foreach (array('1' => __('Today', 'dsmart'), 'yesterday' => __('Yesterday', 'dsmart'), '7' => __('Last 7 days', 'dsmart'), '30' => __('Last 30 days', 'dsmart'), '365' => __('Last 365 days', 'dsmart'), 'year' => __('Last calendar year', 'dsmart'), 'custom' => __('Custom range', 'dsmart')) as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($f['period'], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select></label>
+        <label><?php esc_html_e('From', 'dsmart'); ?><input type="date" name="from" value="<?php echo esc_attr($f['from']); ?>" required></label>
+        <label><?php esc_html_e('To', 'dsmart'); ?><input type="date" name="to" value="<?php echo esc_attr($f['to']); ?>" required></label>
+        <?php foreach (array('method' => array(__('Fulfilment', 'dsmart'), array('all' => __('All methods', 'dsmart'), 'shipping' => __('Delivery', 'dsmart'), 'direct' => __('Take away', 'dsmart'))), 'status' => array(__('Order status', 'dsmart'), array('completed' => __('Completed', 'dsmart'), 'processing' => __('Processing', 'dsmart'), 'cancelled' => __('Cancelled', 'dsmart'), 'all' => __('All statuses', 'dsmart'))), 'sort' => array(__('Sort products by', 'dsmart'), array('name' => __('Name', 'dsmart'), 'quantity' => __('Units', 'dsmart'), 'orders' => __('Popularity / orders', 'dsmart'), 'revenue' => __('Product sales', 'dsmart'), 'shipping' => __('Delivery units', 'dsmart'), 'direct' => __('Take away units', 'dsmart'), 'last' => __('Last ordered', 'dsmart'))), 'direction' => array(__('Direction', 'dsmart'), array('desc' => __('Descending', 'dsmart'), 'asc' => __('Ascending', 'dsmart')))) as $key => $control) : ?>
+        <label><?php echo esc_html($control[0]); ?><select name="<?php echo esc_attr($key); ?>"><?php foreach ($control[1] as $value => $label) : ?><option value="<?php echo esc_attr($value); ?>" <?php selected($f[$key], $value); ?>><?php echo esc_html($label); ?></option><?php endforeach; ?></select></label>
+        <?php endforeach; ?>
+        <label><?php esc_html_e('Search products', 'dsmart'); ?><input type="search" name="search" value="<?php echo esc_attr($f['search']); ?>"></label>
+        <button class="dsmart-button" type="submit"><?php esc_html_e('Apply filters', 'dsmart'); ?></button><a href="<?php echo esc_url(add_query_arg('section', 'statistics', get_permalink())); ?>"><?php esc_html_e('Reset', 'dsmart'); ?></a>
+    </form>
+    <p class="ds-analytics-note"><?php echo esc_html($f['from'] . ' – ' . $f['to'] . ' · ' . wp_timezone_string()); ?>. <?php esc_html_e('Dates include both endpoints and use order creation time. Product search affects the product table and its export only. Totals cover all orders matching date, status and fulfilment.', 'dsmart'); ?></p>
+    <div class="ds-analytics-cards">
+    <?php foreach (array(__('Orders', 'dsmart') => $r['orders'], __('Units ordered', 'dsmart') => $r['quantity'], __('Order total', 'dsmart') => $money($r['revenue']), __('Average order value', 'dsmart') => $money($r['orders'] ? $r['revenue'] / $r['orders'] : 0)) as $label => $value) : ?><article><span><?php echo esc_html($label); ?></span><strong><?php echo esc_html($value); ?></strong></article><?php endforeach; ?>
+    </div>
+    <?php if (!$r['orders']) : ?><p role="status"><?php esc_html_e('No orders match these filters. Try another date range or status.', 'dsmart'); ?></p><?php endif; ?>
+    <div class="ds-analytics-tabs" role="tablist" aria-label="<?php esc_attr_e('Report views', 'dsmart'); ?>"><button type="button" role="tab" id="ds-products-tab" aria-controls="ds-products" aria-selected="true"><?php esc_html_e('Products', 'dsmart'); ?></button><button type="button" role="tab" id="ds-time-tab" aria-controls="ds-time" aria-selected="false" tabindex="-1"><?php esc_html_e('Time & day', 'dsmart'); ?></button></div>
+    <div id="ds-products" role="tabpanel" aria-labelledby="ds-products-tab">
+        <h3><?php esc_html_e('Product performance', 'dsmart'); ?></h3>
+        <p><?php esc_html_e('Popularity is the percentage of selected orders containing a product. Variants are combined. Product sales use historical line totals, including extras, before order-level discounts and delivery fees. Amounts use the current configured currency conversion rate.', 'dsmart'); ?></p>
+        <div class="ds-analytics-scroll"><table><thead><tr><?php foreach (array(__('Product', 'dsmart'), __('Units', 'dsmart'), __('Orders', 'dsmart'), __('Popularity', 'dsmart'), __('Product sales', 'dsmart'), __('Delivery units', 'dsmart'), __('Take away units', 'dsmart'), __('Other units', 'dsmart'), __('Last ordered', 'dsmart')) as $label) { echo '<th scope="col">' . esc_html($label) . '</th>'; } ?></tr></thead><tbody>
+        <?php $page = isset($_GET['product_page']) && is_scalar($_GET['product_page']) ? max(1, absint($_GET['product_page'])) : 1; $pages = max(1, (int) ceil(count($r['products']) / 25)); $page = min($page, $pages);
+        foreach (array_slice($r['products'], ($page - 1) * 25, 25) as $p) : ?><tr><th scope="row"><?php echo esc_html($p['name']); ?></th><td><?php echo esc_html($p['quantity']); ?></td><td><?php echo esc_html($p['orders']); ?></td><td><?php $pop = $r['orders'] ? round(100 * $p['orders'] / $r['orders'], 1) : 0; echo esc_html($pop . '%'); ?><meter min="0" max="100" value="<?php echo esc_attr($pop); ?>" aria-label="<?php esc_attr_e('Popularity', 'dsmart'); ?>"></meter></td><td><?php echo esc_html($money($p['revenue'])); ?></td><td><?php echo esc_html($p['shipping']); ?></td><td><?php echo esc_html($p['direct']); ?></td><td><?php echo esc_html($p['unknown']); ?></td><td><?php echo esc_html($p['last']); ?></td></tr><?php endforeach; ?>
+        <?php if (!$r['products']) : ?><tr><td colspan="9"><?php esc_html_e('No products match these filters.', 'dsmart'); ?></td></tr><?php endif; ?>
+        </tbody></table></div>
+        <nav class="ds-analytics-pagination" aria-label="<?php esc_attr_e('Product pages', 'dsmart'); ?>"><?php echo esc_html(sprintf(__('Page %1$d of %2$d · %3$d products', 'dsmart'), $page, $pages, count($r['products']))); ?> <?php foreach (array($page - 1 => __('Previous', 'dsmart'), $page + 1 => __('Next', 'dsmart')) as $target => $label) { if ($target >= 1 && $target <= $pages) { echo '<a href="' . esc_url(add_query_arg(array_merge($f, array('section' => 'statistics', 'product_page' => $target)), get_permalink())) . '">' . esc_html($label) . '</a>'; } } ?></nav>
+    </div>
+    <div id="ds-time" role="tabpanel" aria-labelledby="ds-time-tab" hidden>
+        <h3><?php esc_html_e('When customers order', 'dsmart'); ?></h3>
+        <?php if ($r['orders']) : ?><p><?php echo esc_html(sprintf(__('Busiest weekday: %1$s · Busiest hour: %2$s · Delivery: %3$d · Take away: %4$d · Other: %5$d orders. Ties show the first period.', 'dsmart'), $weekdays[array_search(max($r['weekdays']), $r['weekdays'], true)], sprintf('%02d:00–%02d:59', array_search(max($r['hours']), $r['hours'], true), array_search(max($r['hours']), $r['hours'], true)), $r['methods']['shipping'], $r['methods']['direct'], $r['methods']['unknown'])); ?></p><?php endif; ?>
+        <h4><?php esc_html_e('Order activity by weekday and hour', 'dsmart'); ?></h4><div class="ds-analytics-scroll"><table class="ds-heatmap"><thead><tr><th scope="col"><?php esc_html_e('Day / hour', 'dsmart'); ?></th><?php for ($hour = 0; $hour < 24; $hour++) { echo '<th scope="col">' . esc_html(sprintf('%02d', $hour)) . '</th>'; } ?></tr></thead><tbody>
+        <?php $peak = max(1, max(array_map('max', $r['heatmap']))); foreach ($weekdays as $day => $name) : ?><tr><th scope="row"><?php echo esc_html($name); ?></th><?php foreach ($r['heatmap'][$day] as $hour => $count) : ?><td style="background:rgba(37,99,235,<?php echo esc_attr(round(.06 + .35 * $count / $peak, 2)); ?>)" title="<?php echo esc_attr($name . ' ' . sprintf('%02d:00', $hour) . ': ' . $count); ?>"><?php echo esc_html($count); ?></td><?php endforeach; ?></tr><?php endforeach; ?></tbody></table></div>
+        <div class="ds-analytics-charts"><?php foreach (array(__('Orders by weekday', 'dsmart') => $r['weekdays'], __('Orders by hour', 'dsmart') => $r['hours']) as $title => $values) : ?><article><h4><?php echo esc_html($title); ?></h4><?php foreach ($values as $key => $count) : ?><div class="ds-analytics-bar"><span><?php echo esc_html(count($values) === 7 ? $weekdays[$key] : sprintf('%02d:00', $key)); ?></span><meter min="0" max="<?php echo esc_attr(max(1, max($values))); ?>" value="<?php echo esc_attr($count); ?>" aria-label="<?php echo esc_attr($title); ?>"></meter><b><?php echo esc_html($count); ?></b></div><?php endforeach; ?></article><?php endforeach; ?></div>
+        <h4><?php esc_html_e('Daily overview', 'dsmart'); ?></h4><p><?php esc_html_e('Dates without orders are omitted. All matching dates are included in Excel.', 'dsmart'); ?></p><div class="ds-analytics-scroll ds-daily"><table><thead><tr><?php foreach (array(__('Date', 'dsmart'), __('Orders', 'dsmart'), __('Order total', 'dsmart'), __('Delivery', 'dsmart'), __('Take away', 'dsmart'), __('Other', 'dsmart')) as $label) { echo '<th scope="col">' . esc_html($label) . '</th>'; } ?></tr></thead><tbody><?php foreach ($r['days'] as $day => $values) { echo '<tr><th scope="row">' . esc_html($day) . '</th>'; foreach ($values as $key => $value) { echo '<td>' . esc_html($key === 'revenue' ? $money($value) : $value) . '</td>'; } echo '</tr>'; } ?></tbody></table></div>
+    </div>
+</section>
+<script src="<?php echo esc_url(plugins_url('../js/shop-analytics.js', __FILE__)); ?>" defer></script>

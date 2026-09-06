@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.8.2
+ * Version: 1.8.3
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -12,7 +12,7 @@ date_default_timezone_set('Europe/Berlin');
 
 // Plugin configuration
 $plugin_config = [
-    'version' => '1.8.1',
+    'version' => '1.8.3',
     'plugin_file' => __FILE__,
     'plugin_dir' => plugin_dir_path(__FILE__),
     'plugin_url' => plugin_dir_url(__FILE__),
@@ -439,6 +439,7 @@ require plugin_dir_path(__FILE__) . '/inc/term_metabox.php';
 require plugin_dir_path(__FILE__) . '/inc/shortcode.php';
 require plugin_dir_path(__FILE__) . '/templates/add-to-cart.php';
 require plugin_dir_path(__FILE__) . '/inc/admin-menu.php';
+require_once plugin_dir_path(__FILE__) . '/inc/shop-analytics.php';
 require plugin_dir_path(__FILE__) . '/inc/create-table.php';
 require plugin_dir_path(__FILE__) . '/inc/ajax-functions.php';
 require plugin_dir_path(__FILE__) . '/inc/coupon-functions.php';
