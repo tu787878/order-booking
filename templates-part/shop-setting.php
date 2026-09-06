@@ -531,7 +531,7 @@ $current_date = date('Ymd');
 $total_order_in_date = (get_option('total_order_'.$current_date) != "") ? intval(get_option('total_order_'.$current_date)) : 0; ?>
 
 <h2 class="dsmart-title"><?php _e("Setting"); ?></h2>
-<p><a href="<?php echo esc_url(add_query_arg('section', 'statistics', get_permalink())); ?>"><?php esc_html_e('View statistics & analysis', 'dsmart'); ?></a></p>
+<p><a href="<?php echo esc_url(add_query_arg('section', 'statistics', get_permalink())); ?>"><?php esc_html_e('Statistik & Analyse öffnen', 'dsmart'); ?></a></p>
 <div class="dsmart-setting-page">
 	<form action="#" method="POST" novalidate>
 		<div class="form-group">

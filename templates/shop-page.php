@@ -20,7 +20,7 @@ get_header(); ?>
 					<li class="<?php if(!isset($_GET['section']) || (isset($_GET['section']) && $_GET['section'] == "")){echo 'active';} ?>"><a href="<?php echo get_permalink(); ?>"><?php _e("List products") ?></a></li>
 					<li class="<?php if(isset($_GET['section']) && $_GET['section'] == "list-order"){echo 'active';} ?>"><a href="<?php echo get_permalink().'?section=list-order'; ?>"><?php _e("List orders") ?></a></li>
 					<li class="<?php if(isset($_GET['section']) && $_GET['section'] == "setting"){echo 'active';} ?>"><a href="<?php echo get_permalink().'?section=setting'; ?>"><?php _e("Setting") ?></a></li>
-					<li class="<?php if(isset($_GET['section']) && $_GET['section'] == "statistics"){echo 'active';} ?>"><a href="<?php echo get_permalink().'?section=statistics'; ?>"><?php _e("Statistic") ?></a></li>
+					<li class="<?php if(isset($_GET['section']) && $_GET['section'] == "statistics"){echo 'active';} ?>"><a href="<?php echo get_permalink().'?section=statistics'; ?>"><?php _e("Statistik & Analyse") ?></a></li>
 				</ul>
 			</div>
 			<div class="dsmart-col-9 shop-content">

@@ -29,16 +29,16 @@ class WP_Query {
 }
 require __DIR__ . '/../inc/shop-analytics.php';
 $GLOBALS['fixtures'] = array(
-    1 => array('currency' => '$', 'total' => 30, 'shipping_method' => 'shipping', 'item' => array(array('product_id' => 7, 'title' => '=Pizza', 'quantity' => 2, 'price' => 20), array('product_id' => 7, 'title' => '=Pizza', 'quantity' => 1, 'price' => 8))),
+    1 => array('currency' => '2', 'total' => 30, 'shipping_method' => 'shipping', 'item' => array(array('product_id' => 7, 'title' => '=Pizza', 'quantity' => 2, 'price' => 20), array('product_id' => 7, 'title' => '=Pizza', 'quantity' => 1, 'price' => 8))),
     2 => array('currency' => '2', 'total' => 10, 'shipping_method' => 'direct', 'item' => array(7 => array('title' => '=Pizza', 'quantity' => 1, 'price' => 5), 9 => array('title' => 'Tea', 'quantity' => 2, 'price' => 3), 10 => null))
 );
 function verify($ok, $message) { if (!$ok) { throw new RuntimeException($message); } }
-verify(dsmart_analytics_money('$', 1234.56) === 1234.56, 'Large amounts retain thousands');
+verify(dsmart_analytics_money('2', 1234.56) === 1234.56, 'Large amounts retain thousands');
 $f = dsmart_analytics_filters(array('period' => 'custom', 'from' => '2026-08-31', 'to' => '2026-09-01'));
 $r = dsmart_analytics_report($f);
-verify($r['orders'] === 2 && $r['quantity'] == 6 && $r['revenue'] == 50, 'Summary and currency conversion');
+verify($r['orders'] === 2 && $r['quantity'] == 6 && $r['revenue'] == 40, 'EUR snapshots are not converted again');
 $p = $r['products'][0];
-verify($p['orders'] === 2 && $p['quantity'] == 4 && $p['revenue'] == 38, 'Variants count once per order; line prices are not multiplied again');
+verify($p['orders'] === 2 && $p['quantity'] == 4 && $p['revenue'] == 33, 'Variants count once per order; line prices are not multiplied again');
 verify($p['shipping'] == 3 && $p['direct'] == 1, 'Fulfilment quantities');
 verify($r['heatmap'][0][23] === 1 && $r['heatmap'][1][0] === 1, 'Local weekday and midnight boundaries');
 verify($GLOBALS['query_args']['date_query'][0]['before'] === '2026-09-01 23:59:59', 'Inclusive final day');

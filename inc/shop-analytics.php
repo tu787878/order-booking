@@ -26,7 +26,7 @@ function dsmart_analytics_filters($input) {
         $from = DateTimeImmutable::createFromFormat('!Y-m-d', $get('from'), wp_timezone());
         $to = DateTimeImmutable::createFromFormat('!Y-m-d', $get('to'), wp_timezone());
         if (!$from || !$to || $from->format('Y-m-d') !== $get('from') || $to->format('Y-m-d') !== $get('to') || $from > $to) {
-            return new WP_Error('range', __('Choose valid dates with From on or before To.', 'dsmart'));
+            return new WP_Error('range', __('Bitte gültige Datumsangaben wählen. Das Startdatum darf nicht nach dem Enddatum liegen.', 'dsmart'));
         }
     } else { $preset = '30'; }
     $status = $get('status', 'completed');
@@ -40,10 +40,10 @@ function dsmart_analytics_filters($input) {
 }
 
 function dsmart_analytics_money($currency, $value) {
-    // Match the shop's conversion rule without formatting numbers before arithmetic.
+    // EUR snapshots are already denominated in euros; do not convert them twice.
     $configured = get_option('dsmart_currency_rate');
     $rate = $configured !== '' && is_numeric($configured) ? (float) $configured : 1;
-    return round((float) $value * ($currency === '$' ? 1 : $rate), 2);
+    return round((float) $value * (in_array((string) $currency, array('2', '€', 'EUR'), true) ? 1 : $rate), 2);
 }
 
 function dsmart_analytics_report($f) {
@@ -72,7 +72,7 @@ function dsmart_analytics_report($f) {
             foreach (is_array($items) ? $items : array() as $key => $item) {
                 if (!is_array($item) || !isset($item['quantity']) || !is_numeric($item['quantity']) || $item['quantity'] <= 0) { continue; }
                 $pid = isset($item['product_id']) ? (int) $item['product_id'] : (int) $key;
-                $name = isset($item['title']) ? wp_strip_all_tags($item['title']) : __('Unknown product', 'dsmart');
+                $name = isset($item['title']) ? wp_strip_all_tags($item['title']) : __('Unbekanntes Produkt', 'dsmart');
                 $key = $pid > 0 ? 'id:' . $pid : 'name:' . $name;
                 if (!isset($report['products'][$key])) { $report['products'][$key] = array('name' => $name, 'quantity' => 0, 'orders' => 0, 'revenue' => 0, 'shipping' => 0, 'direct' => 0, 'unknown' => 0, 'last' => ''); }
                 $p =& $report['products'][$key];
@@ -96,30 +96,30 @@ function dsmart_analytics_report($f) {
 }
 
 function dsmart_analytics_export() {
-    if (!dsmart_analytics_allowed()) { wp_die(esc_html__('You cannot access shop reports.', 'dsmart'), '', array('response' => 403)); }
+    if (!dsmart_analytics_allowed()) { wp_die(esc_html__('Keine Berechtigung für Shop-Berichte.', 'dsmart'), '', array('response' => 403)); }
     check_admin_referer('dsmart_analytics_export');
     $f = dsmart_analytics_filters($_GET);
     if (is_wp_error($f)) { wp_die(esc_html($f->get_error_message())); }
-    if (!class_exists('ZipArchive')) { wp_die(esc_html__('Excel export requires the PHP ZIP extension.', 'dsmart')); }
+    if (!class_exists('ZipArchive')) { wp_die(esc_html__('Für den Excel-Export wird die PHP-ZIP-Erweiterung benötigt.', 'dsmart')); }
     $r = dsmart_analytics_report($f);
     require_once __DIR__ . '/PHPExcel/Classes/PHPExcel.php';
     $writer = new XLSXWriter();
-    $writer->setTitle('Shop statistics'); $writer->setSubject('Order analytics');
-    $writer->setAuthor(''); $writer->setCompany(''); $writer->setDescription('Filtered shop order report');
+    $writer->setTitle('Shop-Statistik'); $writer->setSubject('Bestellauswertung');
+    $writer->setAuthor(''); $writer->setCompany(''); $writer->setDescription('Gefilterter Bestellbericht');
     $sheets = array(
-        'Overview' => array(array('Metric' => 'string', 'Value' => 'string'), array(array('From', $f['from']), array('To (inclusive)', $f['to']), array('Timezone', wp_timezone_string()), array('Status', $f['status']), array('Fulfilment', $f['method']), array('Product search (Products only)', $f['search']), array('Orders', $r['orders']), array('Units', $r['quantity']), array('Order total', round($r['revenue'], 2)), array('Average order value', $r['orders'] ? round($r['revenue'] / $r['orders'], 2) : 0), array('Currency', wp_strip_all_tags(ds_price_format_text_with_symbol(0, '1'))), array('Definitions', 'Popularity = share of selected orders containing product. Product sales are stored line totals before order-level discounts and fees. Time analysis uses order creation time. Search only filters Products. Amounts use the current configured currency conversion rate.'))),
-        'Products' => array(array('Product' => 'string', 'Units' => '0.##', 'Orders' => 'integer', 'Popularity' => '0.0%', 'Product sales' => '0.00', 'Delivery units' => '0.##', 'Take away units' => '0.##', 'Other units' => '0.##', 'Last ordered' => 'string'), array()),
-        'Daily' => array(array('Date' => 'string', 'Orders' => 'integer', 'Order total' => '0.00', 'Delivery orders' => 'integer', 'Take away orders' => 'integer', 'Other orders' => 'integer'), array()),
-        'Hours' => array(array('Hour' => 'string', 'Orders' => 'integer'), array()),
-        'Weekdays' => array(array('Weekday' => 'string', 'Orders' => 'integer'), array()),
-        'Activity' => array(array('Weekday' => 'string', 'Hour' => 'string', 'Orders' => 'integer'), array())
+        'Übersicht' => array(array('Kennzahl' => 'string', 'Wert' => 'string'), array(array('Von', $f['from']), array('Bis (einschließlich)', $f['to']), array('Zeitzone', wp_timezone_string()), array('Status', array('completed' => 'Abgeschlossen', 'processing' => 'In Bearbeitung', 'cancelled' => 'Storniert', 'all' => 'Alle Status')[$f['status']]), array('Bestellart', array('all' => 'Alle Bestellarten', 'shipping' => 'Lieferung', 'direct' => 'Abholung')[$f['method']]), array('Produktsuche (nur Produkttabelle)', $f['search']), array('Bestellungen', $r['orders']), array('Menge', $r['quantity']), array('Bestellumsatz', number_format($r['revenue'], 2, ',', '.') . ' €'), array('Durchschnittlicher Bestellwert', number_format($r['orders'] ? $r['revenue'] / $r['orders'] : 0, 2, ',', '.') . ' €'), array('Währung', 'EUR (€)'), array('Erläuterungen', 'Beliebtheit = Anteil der ausgewählten Bestellungen mit diesem Produkt. Produktumsätze entsprechen gespeicherten Positionsbeträgen vor Bestellrabatten und Gebühren. Maßgeblich ist der Bestellzeitpunkt. Die Suche filtert nur die Produkttabelle. Alle Beträge in Euro.'))),
+        'Produkte' => array(array('Produkt' => 'string', 'Menge' => '0.##', 'Bestellungen' => 'integer', 'Beliebtheit' => '0.0%', 'Produktumsatz' => '#,##0.00 "€"', 'Liefermenge' => '0.##', 'Abholmenge' => '0.##', 'Sonstige Menge' => '0.##', 'Zuletzt bestellt' => 'string'), array()),
+        'Tagesübersicht' => array(array('Datum' => 'string', 'Bestellungen' => 'integer', 'Bestellumsatz' => '#,##0.00 "€"', 'Lieferbestellungen' => 'integer', 'Abholbestellungen' => 'integer', 'Sonstige Bestellungen' => 'integer'), array()),
+        'Stunden' => array(array('Stunde' => 'string', 'Bestellungen' => 'integer'), array()),
+        'Wochentage' => array(array('Wochentag' => 'string', 'Bestellungen' => 'integer'), array()),
+        'Bestellaktivität' => array(array('Wochentag' => 'string', 'Stunde' => 'string', 'Bestellungen' => 'integer'), array())
     );
-    foreach ($r['products'] as $p) { $sheets['Products'][1][] = array($p['name'], $p['quantity'], $p['orders'], $r['orders'] ? $p['orders'] / $r['orders'] : 0, $p['revenue'], $p['shipping'], $p['direct'], $p['unknown'], $p['last']); }
-    foreach ($r['days'] as $day => $data) { $sheets['Daily'][1][] = array_merge(array($day), array_values($data)); }
-    foreach ($r['hours'] as $hour => $count) { $sheets['Hours'][1][] = array(sprintf('%02d:00', $hour), $count); }
-    foreach (array('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday') as $day => $name) {
-        $sheets['Weekdays'][1][] = array($name, $r['weekdays'][$day]);
-        foreach ($r['heatmap'][$day] as $hour => $count) { $sheets['Activity'][1][] = array($name, sprintf('%02d:00', $hour), $count); }
+    foreach ($r['products'] as $p) { $sheets['Produkte'][1][] = array($p['name'], $p['quantity'], $p['orders'], $r['orders'] ? $p['orders'] / $r['orders'] : 0, $p['revenue'], $p['shipping'], $p['direct'], $p['unknown'], $p['last']); }
+    foreach ($r['days'] as $day => $data) { $sheets['Tagesübersicht'][1][] = array_merge(array($day), array_values($data)); }
+    foreach ($r['hours'] as $hour => $count) { $sheets['Stunden'][1][] = array(sprintf('%02d:00', $hour), $count); }
+    foreach (array('Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag') as $day => $name) {
+        $sheets['Wochentage'][1][] = array($name, $r['weekdays'][$day]);
+        foreach ($r['heatmap'][$day] as $hour => $count) { $sheets['Bestellaktivität'][1][] = array($name, sprintf('%02d:00', $hour), $count); }
     }
     foreach ($sheets as $name => $sheet) {
         $writer->writeSheetHeader($name, $sheet[0], array('widths' => array_merge(array(32), array_fill(0, count($sheet[0]) - 1, 23)), 'freeze_rows' => 1, 'auto_filter' => true, 'font-style' => 'bold', 'fill' => '#DBEAFE'));
@@ -131,7 +131,7 @@ function dsmart_analytics_export() {
     }
     nocache_headers();
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    header('Content-Disposition: attachment; filename="shop-statistics-' . $f['from'] . '-' . $f['to'] . '.xlsx"');
+    header('Content-Disposition: attachment; filename="shop-statistik-' . $f['from'] . '-' . $f['to'] . '.xlsx"');
     $writer->writeToStdOut();
     exit;
 }
@@ -145,7 +145,7 @@ add_action('admin_menu', 'dsmart_analytics_admin_menu');
 
 function dsmart_analytics_admin_page() {
     if (!current_user_can('edit_products')) {
-        wp_die(esc_html__('You cannot access shop reports.', 'dsmart'), '', array('response' => 403));
+        wp_die(esc_html__('Keine Berechtigung für Shop-Berichte.', 'dsmart'), '', array('response' => 403));
     }
     echo '<div class="wrap">';
     require dirname(__DIR__) . '/templates-part/shop-statistics.php';
