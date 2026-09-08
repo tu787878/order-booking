@@ -34,6 +34,19 @@ $weekdays = array(__('Montag', 'dsmart'), __('Dienstag', 'dsmart'), __('Mittwoch
     <?php foreach (array(__('Bestellungen', 'dsmart') => $r['orders'], __('Bestellte Artikel', 'dsmart') => $r['quantity'], __('Bestellumsatz', 'dsmart') => $money($r['revenue']), __('Durchschnittlicher Bestellwert', 'dsmart') => $money($r['orders'] ? $r['revenue'] / $r['orders'] : 0)) as $label => $value) : ?><article><span><?php echo esc_html($label); ?></span><strong><?php echo esc_html($value); ?></strong></article><?php endforeach; ?>
     </div>
     <?php if (!$r['orders']) : ?><p role="status"><?php esc_html_e('Keine Bestellungen für diese Filter gefunden. Bitte einen anderen Zeitraum oder Status auswählen.', 'dsmart'); ?></p><?php endif; ?>
+    <div class="ds-report-visuals">
+        <?php foreach (dsmart_analytics_charts($r) as $chart) : ?>
+        <article class="ds-report-chart"><h3><?php echo esc_html($chart['title']); ?></h3>
+            <?php echo dsmart_analytics_svg($chart); ?>
+            <details><summary><?php esc_html_e('Diagrammdaten anzeigen', 'dsmart'); ?></summary>
+                <table><thead><tr><th scope="col"><?php esc_html_e('Zeitraum / Bestellart', 'dsmart'); ?></th><th scope="col"><?php esc_html_e('Bestellungen', 'dsmart'); ?></th></tr></thead><tbody>
+                <?php foreach ($chart['labels'] as $index => $label) : ?><tr><th scope="row"><?php echo esc_html($label); ?></th><td><?php echo esc_html($chart['values'][$index]); ?></td></tr><?php endforeach; ?>
+                </tbody></table>
+            </details>
+        </article>
+        <?php endforeach; ?>
+    </div>
+    <p class="ds-analytics-note"><?php esc_html_e('Der Excel-Export enthält bearbeitbare Diagramme auf dem Blatt Übersicht. Die Diagramme sind mit den Tabellenwerten verknüpft.', 'dsmart'); ?></p>
     <div class="ds-analytics-tabs" role="tablist" aria-label="<?php esc_attr_e('Berichtsansichten', 'dsmart'); ?>"><button type="button" role="tab" id="ds-products-tab" aria-controls="ds-products" aria-selected="true"><?php esc_html_e('Produkte', 'dsmart'); ?></button><button type="button" role="tab" id="ds-time-tab" aria-controls="ds-time" aria-selected="false" tabindex="-1"><?php esc_html_e('Uhrzeit & Wochentag', 'dsmart'); ?></button></div>
     <div id="ds-products" role="tabpanel" aria-labelledby="ds-products-tab">
         <h3><?php esc_html_e('Produktauswertung', 'dsmart'); ?></h3>

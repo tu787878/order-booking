@@ -9,8 +9,8 @@ function book_menu()
 	// add_submenu_page('edit.php?post_type=product', 'Bewertungen', 'Bewertungen', 'edit_products', 'list-review', 'list_review');
 	add_submenu_page('edit.php?post_type=product', 'Shop Standort', 'Shop Standort', 'manage_options', 'list-shop', 'list_shop');
 	/*add_submenu_page( 'general-booking-setting', 'Thêm địa chỉ Shop', 'Thêm địa chỉ Shop','manage_options', 'add-address-shop','add_address_shop');*/
-	add_submenu_page('edit.php?post_type=product', 'Bestellung Statistik', 'Bestellung Statistik', 'edit_products', 'dsmart-statistics-order', 'dsmart_statistics_order');
-	add_submenu_page('edit.php?post_type=product', 'Umsatz Statistik', 'Umsatz Statistik', 'edit_products', 'dsmart-statistics-all', 'dsmart_statistics_all');
+	if (dsmart_analytics_allowed()) { add_submenu_page('edit.php?post_type=product', 'Bestellung Statistik', 'Bestellung Statistik', 'edit_products', 'dsmart-statistics-order', 'dsmart_statistics_order'); }
+	if (dsmart_analytics_allowed()) { add_submenu_page('edit.php?post_type=product', 'Umsatz Statistik', 'Umsatz Statistik', 'edit_products', 'dsmart-statistics-all', 'dsmart_statistics_all'); }
 }
 function general_booking_setting()
 {
@@ -1014,7 +1014,7 @@ function general_booking_setting()
 	<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous"> -->
 	<div class="wrap">
 		<h1><?php _e('Einstellungen'); ?></h1>
-        <p><a class="button button-secondary" href="<?php echo esc_url(admin_url('edit.php?post_type=product&page=dsmart-shop-analytics')); ?>">Statistik &amp; Analyse</a></p>
+<?php if (dsmart_analytics_allowed()) : ?>        <p><a class="button button-secondary" href="<?php echo esc_url(admin_url('edit.php?post_type=product&page=dsmart-shop-analytics')); ?>">Statistik &amp; Analyse</a></p><?php endif; ?>
 		<form action="#" class="dsmart-form" method="POST" novalidate>
 			<ul class="ds-list-tab">
 				<li class="active"><a href="#tab-1">Shop Stil</a></li>
@@ -2560,6 +2560,7 @@ function list_review()
 }
 function dsmart_statistics_order()
 {
+    if (!dsmart_analytics_allowed()) { wp_die('Keine Berechtigung für Shop-Berichte.', '', array('response' => 403)); }
 	$date_query = array();
 	$meta_query = array();
 	if (isset($_GET['date_from']) && $_GET['date_from'] != "") {
@@ -2722,6 +2723,7 @@ function dsmart_statistics_order()
 
 function dsmart_statistics_all()
 {
+    if (!dsmart_analytics_allowed()) { wp_die('Keine Berechtigung für Shop-Berichte.', '', array('response' => 403)); }
 	$date_query = array();
 	$meta_query = array();
 	if (isset($_GET['date_from']) && $_GET['date_from'] != "") {

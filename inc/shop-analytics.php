@@ -1,10 +1,14 @@
 <?php
 /** Shop-wide reporting, using historical order snapshots rather than current menu prices. */
 defined('ABSPATH') || exit;
+require_once __DIR__ . '/shop-analytics-charts.php';
 
 function dsmart_analytics_allowed() {
-    $roles = (array) wp_get_current_user()->roles;
-    return is_user_logged_in() && (current_user_can('edit_products') || in_array('shop', $roles, true) || in_array('administrator', $roles, true));
+    $user = wp_get_current_user();
+    // Client manager accounts must not gain report access through product-edit rights.
+    return is_user_logged_in()
+        && !in_array('shop', (array) $user->roles, true)
+        && current_user_can('manage_options');
 }
 
 function dsmart_analytics_filters($input) {
@@ -112,8 +116,10 @@ function dsmart_analytics_export() {
         'Tagesübersicht' => array(array('Datum' => 'string', 'Bestellungen' => 'integer', 'Bestellumsatz' => '#,##0.00 "€"', 'Lieferbestellungen' => 'integer', 'Abholbestellungen' => 'integer', 'Sonstige Bestellungen' => 'integer'), array()),
         'Stunden' => array(array('Stunde' => 'string', 'Bestellungen' => 'integer'), array()),
         'Wochentage' => array(array('Wochentag' => 'string', 'Bestellungen' => 'integer'), array()),
+        'Bestellarten' => array(array('Bestellart' => 'string', 'Bestellungen' => 'integer'), array()),
         'Bestellaktivität' => array(array('Wochentag' => 'string', 'Stunde' => 'string', 'Bestellungen' => 'integer'), array())
     );
+    foreach (array('shipping' => 'Lieferung', 'direct' => 'Abholung', 'unknown' => 'Sonstige') as $method => $label) { $sheets['Bestellarten'][1][] = array($label, $r['methods'][$method]); }
     foreach ($r['products'] as $p) { $sheets['Produkte'][1][] = array($p['name'], $p['quantity'], $p['orders'], $r['orders'] ? $p['orders'] / $r['orders'] : 0, $p['revenue'], $p['shipping'], $p['direct'], $p['unknown'], $p['last']); }
     foreach ($r['days'] as $day => $data) { $sheets['Tagesübersicht'][1][] = array_merge(array($day), array_values($data)); }
     foreach ($r['hours'] as $hour => $count) { $sheets['Stunden'][1][] = array(sprintf('%02d:00', $hour), $count); }
@@ -126,25 +132,36 @@ function dsmart_analytics_export() {
         foreach ($sheet[1] as $i => $row) {
             // The bundled writer interprets leading '=' even in string columns.
             $row = array_map(function ($v) { return is_string($v) && preg_match('/^[\s]*[=+@-]/', $v) ? "'" . $v : $v; }, $row);
-            $writer->writeSheetRow($name, $row, array('fill' => $i % 2 ? '#F1F5F9' : '#FFFFFF'));
+            $writer->writeSheetRow($name, $row, array('fill' => $i % 2 ? '#F1F5F9' : '#FFFFFF', 'wrap_text' => true, 'height' => $name === 'Übersicht' && $i === 11 ? 180 : 30));
         }
+    }
+    // Generate and validate privately before sending download headers.
+    $filename = tempnam(sys_get_temp_dir(), 'shop-analytics-');
+    if ($filename === false) { wp_die(esc_html__('Excel-Export konnte nicht erstellt werden.', 'dsmart')); }
+    try {
+        $writer->writeToFile($filename);
+        dsmart_analytics_attach_charts($filename, dsmart_analytics_charts($r));
+    } catch (Throwable $error) {
+        if (is_file($filename)) { unlink($filename); }
+        wp_die(esc_html__('Excel-Export konnte nicht erstellt werden. Bitte erneut versuchen.', 'dsmart'));
     }
     nocache_headers();
     header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     header('Content-Disposition: attachment; filename="shop-statistik-' . $f['from'] . '-' . $f['to'] . '.xlsx"');
-    $writer->writeToStdOut();
+    try { readfile($filename); } finally { if (is_file($filename)) { unlink($filename); } }
     exit;
 }
 add_action('admin_post_dsmart_analytics_export', 'dsmart_analytics_export');
 
 /** Expose the same report in the WordPress product settings area. */
 function dsmart_analytics_admin_menu() {
-    add_submenu_page('edit.php?post_type=product', 'Statistik & Analyse', 'Statistik & Analyse', 'edit_products', 'dsmart-shop-analytics', 'dsmart_analytics_admin_page');
+    if (!dsmart_analytics_allowed()) { return; }
+    add_submenu_page('edit.php?post_type=product', 'Statistik & Analyse', 'Statistik & Analyse', 'manage_options', 'dsmart-shop-analytics', 'dsmart_analytics_admin_page');
 }
 add_action('admin_menu', 'dsmart_analytics_admin_menu');
 
 function dsmart_analytics_admin_page() {
-    if (!current_user_can('edit_products')) {
+    if (!dsmart_analytics_allowed()) {
         wp_die(esc_html__('Keine Berechtigung für Shop-Berichte.', 'dsmart'), '', array('response' => 403));
     }
     echo '<div class="wrap">';
