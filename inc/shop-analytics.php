@@ -111,13 +111,29 @@ function dsmart_analytics_export() {
     $writer->setTitle('Shop-Statistik'); $writer->setSubject('Bestellauswertung');
     $writer->setAuthor(''); $writer->setCompany(''); $writer->setDescription('Gefilterter Bestellbericht');
     $sheets = array(
-        'Übersicht' => array(array('Kennzahl' => 'string', 'Wert' => 'string'), array(array('Von', $f['from']), array('Bis (einschließlich)', $f['to']), array('Zeitzone', wp_timezone_string()), array('Status', array('completed' => 'Abgeschlossen', 'processing' => 'In Bearbeitung', 'cancelled' => 'Storniert', 'all' => 'Alle Status')[$f['status']]), array('Bestellart', array('all' => 'Alle Bestellarten', 'shipping' => 'Lieferung', 'direct' => 'Abholung')[$f['method']]), array('Produktsuche (nur Produkttabelle)', $f['search']), array('Bestellungen', $r['orders']), array('Menge', $r['quantity']), array('Bestellumsatz', number_format($r['revenue'], 2, ',', '.') . ' €'), array('Durchschnittlicher Bestellwert', number_format($r['orders'] ? $r['revenue'] / $r['orders'] : 0, 2, ',', '.') . ' €'), array('Währung', 'EUR (€)'), array('Erläuterungen', 'Beliebtheit = Anteil der ausgewählten Bestellungen mit diesem Produkt. Produktumsätze entsprechen gespeicherten Positionsbeträgen vor Bestellrabatten und Gebühren. Maßgeblich ist der Bestellzeitpunkt. Die Suche filtert nur die Produkttabelle. Alle Beträge in Euro.'))),
+        'Übersicht' => array(array('Kennzahl' => 'string', 'Wert' => 'GENERAL'), array(array('Von', $f['from']), array('Bis (einschließlich)', $f['to']), array('Zeitzone', wp_timezone_string()), array('Status', array('completed' => 'Abgeschlossen', 'processing' => 'In Bearbeitung', 'cancelled' => 'Storniert', 'all' => 'Alle Status')[$f['status']]), array('Bestellart', array('all' => 'Alle Bestellarten', 'shipping' => 'Lieferung', 'direct' => 'Abholung')[$f['method']]), array('Produktsuche (nur Produkttabelle)', $f['search']), array('Bestellungen', $r['orders']), array('Menge', $r['quantity']), array('Bestellumsatz', number_format($r['revenue'], 2, ',', '.') . ' €'), array('Durchschnittlicher Bestellwert', number_format($r['orders'] ? $r['revenue'] / $r['orders'] : 0, 2, ',', '.') . ' €'), array('Währung', 'EUR (€)'), array('Erläuterungen', 'Beliebtheit = Anteil der ausgewählten Bestellungen mit diesem Produkt. Produktumsätze entsprechen gespeicherten Positionsbeträgen vor Bestellrabatten und Gebühren. Maßgeblich ist der Bestellzeitpunkt. Die Suche filtert nur die Produkttabelle. Alle Beträge in Euro.'))),
         'Produkte' => array(array('Produkt' => 'string', 'Menge' => '0.##', 'Bestellungen' => 'integer', 'Beliebtheit' => '0.0%', 'Produktumsatz' => '#,##0.00 "€"', 'Liefermenge' => '0.##', 'Abholmenge' => '0.##', 'Sonstige Menge' => '0.##', 'Zuletzt bestellt' => 'string'), array()),
         'Tagesübersicht' => array(array('Datum' => 'string', 'Bestellungen' => 'integer', 'Bestellumsatz' => '#,##0.00 "€"', 'Lieferbestellungen' => 'integer', 'Abholbestellungen' => 'integer', 'Sonstige Bestellungen' => 'integer'), array()),
         'Stunden' => array(array('Stunde' => 'string', 'Bestellungen' => 'integer'), array()),
         'Wochentage' => array(array('Wochentag' => 'string', 'Bestellungen' => 'integer'), array()),
         'Bestellarten' => array(array('Bestellart' => 'string', 'Bestellungen' => 'integer'), array()),
         'Bestellaktivität' => array(array('Wochentag' => 'string', 'Stunde' => 'string', 'Bestellungen' => 'integer'), array())
+    );
+    // Keep the overview compact; detailed definitions belong on their own sheet.
+    $overview = $sheets['Übersicht'][1];
+    $sheets['Übersicht'][1] = array_merge(array_slice($overview, 6, 4), array_slice($overview, 0, 6), array($overview[10]));
+    $sheets['Hinweise'] = array(array('Thema' => 'string', 'Erläuterung' => 'string'), array(
+        array('Beliebtheit', 'Anteil der ausgewählten Bestellungen, die ein Produkt enthalten. Varianten werden zusammengefasst.'),
+        array('Produktumsatz', 'Gespeicherte Positionsbeträge einschließlich Extras, vor Bestellrabatten und Liefergebühren. Alle Beträge in Euro.'),
+        array('Zeitraum und Filter', 'Start- und Enddatum sind eingeschlossen. Maßgeblich ist der Bestellzeitpunkt. Die Produktsuche filtert nur das Blatt Produkte.'),
+        array('Diagramme bearbeiten', 'Die Diagramme auf Übersicht sind mit Bestellarten, Wochentage und Stunden verknüpft. Änderungen an den vorhandenen Zahlenzellen werden im Diagramm übernommen.'),
+        array('Tabellen verwenden', 'Die Datenblätter enthalten Filter und eine fixierte Kopfzeile. Mengen und Umsätze sind Zahlen und können in Excel weiter ausgewertet werden.')
+    ));
+    $widths = array(
+        'Übersicht' => array(34, 30), 'Produkte' => array(38, 12, 16, 15, 19, 15, 15, 17, 23),
+        'Tagesübersicht' => array(16, 16, 20, 22, 22, 24), 'Stunden' => array(16, 18),
+        'Wochentage' => array(20, 18), 'Bestellarten' => array(20, 18),
+        'Bestellaktivität' => array(20, 16, 18), 'Hinweise' => array(26, 90)
     );
     foreach (array('shipping' => 'Lieferung', 'direct' => 'Abholung', 'unknown' => 'Sonstige') as $method => $label) { $sheets['Bestellarten'][1][] = array($label, $r['methods'][$method]); }
     foreach ($r['products'] as $p) { $sheets['Produkte'][1][] = array($p['name'], $p['quantity'], $p['orders'], $r['orders'] ? $p['orders'] / $r['orders'] : 0, $p['revenue'], $p['shipping'], $p['direct'], $p['unknown'], $p['last']); }
@@ -128,11 +144,11 @@ function dsmart_analytics_export() {
         foreach ($r['heatmap'][$day] as $hour => $count) { $sheets['Bestellaktivität'][1][] = array($name, sprintf('%02d:00', $hour), $count); }
     }
     foreach ($sheets as $name => $sheet) {
-        $writer->writeSheetHeader($name, $sheet[0], array('widths' => array_merge(array(32), array_fill(0, count($sheet[0]) - 1, 23)), 'freeze_rows' => 1, 'auto_filter' => true, 'font-style' => 'bold', 'fill' => '#DBEAFE'));
+        $writer->writeSheetHeader($name, $sheet[0], array('widths' => $widths[$name], 'freeze_rows' => 1, 'auto_filter' => !in_array($name, array('Übersicht', 'Hinweise'), true), 'font' => 'Calibri', 'font-size' => 11, 'font-style' => 'bold', 'color' => '#FFFFFF', 'fill' => '#17365D', 'wrap_text' => true, 'valign' => 'center'));
         foreach ($sheet[1] as $i => $row) {
             // The bundled writer interprets leading '=' even in string columns.
             $row = array_map(function ($v) { return is_string($v) && preg_match('/^[\s]*[=+@-]/', $v) ? "'" . $v : $v; }, $row);
-            $writer->writeSheetRow($name, $row, array('fill' => $i % 2 ? '#F1F5F9' : '#FFFFFF', 'wrap_text' => true, 'height' => $name === 'Übersicht' && $i === 11 ? 180 : 30));
+            $writer->writeSheetRow($name, $row, array('fill' => $i % 2 ? '#F1F5F9' : '#FFFFFF', 'wrap_text' => true, 'height' => $name === 'Hinweise' ? 62 : 28, 'font' => 'Calibri', 'font-size' => 11, 'valign' => 'center'));
         }
     }
     // Generate and validate privately before sending download headers.

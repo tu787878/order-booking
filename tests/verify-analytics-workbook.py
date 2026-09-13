@@ -10,6 +10,15 @@ for filename in sys.argv[1:]:
     charts = wb['Übersicht']._charts
     assert [type(c).__name__ for c in charts] == ['PieChart', 'BarChart', 'LineChart']
     assert len(wb['Übersicht']._images) == 0
+    assert wb['Übersicht']['A2'].value == 'Bestellungen'
+    assert isinstance(wb['Übersicht']['B2'].value, (int, float))
+    assert 'Hinweise' in wb.sheetnames
+    assert wb['Produkte'].freeze_panes == 'A2'
+    assert wb['Produkte'].auto_filter.ref
+    for i, chart in enumerate(charts):
+        assert chart.anchor.ext.cx == 440 * 9525
+        assert chart.anchor.ext.cy == 240 * 9525
+        assert chart.anchor.pos.y == i * 260 * 9525
     for chart in charts:
         series = chart.series[0]
         for ref, numeric in [(series.cat.strRef, False), (series.val.numRef, True)]:

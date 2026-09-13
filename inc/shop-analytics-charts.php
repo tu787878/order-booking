@@ -93,14 +93,29 @@ function dsmart_analytics_attach_charts($filename, $charts) {
     if ($zip->open($filename) !== true) { throw new RuntimeException('Excel-Datei konnte nicht geöffnet werden.'); }
     try {
         $types = $zip->getFromName('[Content_Types].xml');
-        $sheet = $zip->getFromName('xl/worksheets/sheet1.xml');
+        // The bundled writer hardcodes header height; enlarge it for wrapped German labels.
+        $worksheet_paths = array();
+        for ($index = 0; $index < $zip->numFiles; $index++) {
+            $path = $zip->getNameIndex($index);
+            if (preg_match('~^xl/worksheets/sheet[0-9]+\.xml$~', $path)) { $worksheet_paths[] = $path; }
+        }
+        foreach ($worksheet_paths as $path) {
+            $content = $zip->getFromName($path);
+            $content = preg_replace_callback('/<row\b[^>]*\br="1"[^>]*>/', function ($match) {
+                return preg_replace('/\bht="[^"]*"/', 'ht="34"', $match[0]);
+            }, $content, 1);
+            if (!$zip->addFromString($path, $content)) { throw new RuntimeException('Excel-Kopfzeile konnte nicht gespeichert werden.'); }
+            if ($path === 'xl/worksheets/sheet1.xml') { $sheet = $content; }
+        }
         if ($types === false || $sheet === false) { throw new RuntimeException('Ungültige Excel-Datei.'); }
         $drawing = '<?xml version="1.0" encoding="UTF-8"?><xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main">';
         $rels = '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
         $add = function ($path, $content) use ($zip) { if (!$zip->addFromString($path, $content)) { throw new RuntimeException('Excel-Diagramm konnte nicht gespeichert werden.'); } };
         foreach ($charts as $i => $chart) {
-            $id = $i + 1; $row = $i * 19;
-            $drawing .= '<xdr:twoCellAnchor><xdr:from><xdr:col>3</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' . $row . '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from><xdr:to><xdr:col>13</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>' . ($row + 18) . '</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="' . $id . '" name="Diagramm ' . $id . '"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId' . $id . '"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:twoCellAnchor>';
+            $id = $i + 1;
+            // Fixed 440 × 240 px charts: row heights and wrapped notes cannot stretch them.
+            $chart_y = $i * 260 * 9525;
+            $drawing .= '<xdr:absoluteAnchor><xdr:pos x="4572000" y="' . $chart_y . '"/><xdr:ext cx="4191000" cy="2286000"/><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="' . $id . '" name="Diagramm ' . $id . '"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr><xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart"><c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rId' . $id . '"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:absoluteAnchor>';
             $rels .= '<Relationship Id="rId' . $id . '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chart" Target="../charts/chart' . $id . '.xml"/>';
             $types = str_replace('</Types>', '<Override PartName="/xl/charts/chart' . $id . '.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/></Types>', $types);
             $add('xl/charts/chart' . $id . '.xml', dsmart_analytics_chart_xml($chart));
