@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.7
+- Fixed duplicate worksheet-scoped filter definitions that could cause Excel to reject or repair multi-sheet exports.
+
 ## 1.8.6
 - Improved Excel report overview, table readability and column widths; made linked charts compact with fixed dimensions.
 

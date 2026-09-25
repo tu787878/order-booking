@@ -669,12 +669,14 @@ class XLSXWriter
 		}
 		$workbook_xml.='</sheets>';
 		$workbook_xml.='<definedNames>';
+		$sheet_index = 0;
 		foreach($this->sheets as $sheet_name=>$sheet) {
 			if ($sheet->auto_filter) {
 				$sheetname = self::sanitize_sheetname($sheet->sheetname);
-				$workbook_xml.='<definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">\''.self::xmlspecialchars($sheetname).'\'!$A$1:' . self::xlsCell($sheet->row_count - 1, count($sheet->columns) - 1, true) . '</definedName>';
-				$i++;	
+				$workbook_xml.='<definedName name="_xlnm._FilterDatabase" localSheetId="'.$sheet_index.'" hidden="1">\''.self::xmlspecialchars($sheetname).'\'!$A$1:' . self::xlsCell($sheet->row_count - 1, count($sheet->columns) - 1, true) . '</definedName>';
+
 			}
+			$sheet_index++;
 		}
 		$workbook_xml.='</definedNames>';
 		$workbook_xml.='<calcPr iterateCount="100" refMode="A1" iterate="false" iterateDelta="0.001"/></workbook>';

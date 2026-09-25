@@ -6,6 +6,18 @@ import posixpath
 from openpyxl import load_workbook
 
 for filename in sys.argv[1:]:
+    # Excel requires defined names to be unique within their worksheet scope.
+    with ZipFile(filename) as archive:
+        ns = {'s': 'http://schemas.openxmlformats.org/spreadsheetml/2006/main'}
+        book = ET.fromstring(archive.read('xl/workbook.xml'))
+        sheets = [item.get('name') for item in book.findall('s:sheets/s:sheet', ns)]
+        names = book.findall('s:definedNames/s:definedName', ns)
+        scopes = [(item.get('name'), item.get('localSheetId')) for item in names]
+        assert len(scopes) == len(set(scopes)), 'Duplicate scoped Excel names'
+        for item in names:
+            if item.get('name') == '_xlnm._FilterDatabase':
+                index = int(item.get('localSheetId'))
+                assert item.text.startswith("'" + sheets[index] + "'!"), 'Filter points to the wrong worksheet'
     wb = load_workbook(filename)
     charts = wb['Übersicht']._charts
     assert [type(c).__name__ for c in charts] == ['PieChart', 'BarChart', 'LineChart']
