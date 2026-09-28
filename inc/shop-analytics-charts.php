@@ -94,7 +94,7 @@ function dsmart_analytics_attach_charts($filename, $charts) {
     try {
         $types = $zip->getFromName('[Content_Types].xml');
         // The bundled writer hardcodes header height; enlarge it for wrapped German labels.
-        $worksheet_paths = array();
+        $worksheet_paths = array(); $sheet = false;
         for ($index = 0; $index < $zip->numFiles; $index++) {
             $path = $zip->getNameIndex($index);
             if (preg_match('~^xl/worksheets/sheet[0-9]+\.xml$~', $path)) { $worksheet_paths[] = $path; }
@@ -124,7 +124,13 @@ function dsmart_analytics_attach_charts($filename, $charts) {
         $add('xl/drawings/_rels/drawing1.xml.rels', $rels . '</Relationships>');
         $add('xl/worksheets/_rels/sheet1.xml.rels', '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rIdCharts" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/drawing" Target="../drawings/drawing1.xml"/></Relationships>');
         $add('xl/worksheets/sheet1.xml', str_replace('</worksheet>', '<drawing xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" r:id="rIdCharts"/></worksheet>', $sheet));
-        $add('[Content_Types].xml', str_replace('</Types>', '<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>', $types));
+        $types = str_replace('</Types>', '<Override PartName="/xl/drawings/drawing1.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/></Types>', $types);
+        // The writer only declares its own two .rels parts by name, so the relationship
+        // parts added above would otherwise have no content type and Excel rejects the package.
+        if (strpos($types, 'Extension="rels"') === false) {
+            $types = preg_replace('~<Types\b[^>]*>~', '$0<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>', $types, 1);
+        }
+        $add('[Content_Types].xml', $types);
     } catch (Throwable $error) {
         $zip->close();
         throw $error;
