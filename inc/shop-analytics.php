@@ -33,11 +33,11 @@ function dsmart_analytics_filters($input) {
             return new WP_Error('range', __('Bitte gültige Datumsangaben wählen. Das Startdatum darf nicht nach dem Enddatum liegen.', 'dsmart'));
         }
     } else { $preset = '30'; }
-    $status = $get('status', 'completed');
+    $status = $get('status', 'all');
     $method = $get('method', 'all');
     $sort = $get('sort', 'quantity');
     return array('period' => $preset, 'from' => $from->format('Y-m-d'), 'to' => $to->format('Y-m-d'),
-        'status' => in_array($status, array('completed', 'processing', 'cancelled', 'all'), true) ? $status : 'completed',
+        'status' => in_array($status, array('completed', 'processing', 'cancelled', 'all'), true) ? $status : 'all',
         'method' => in_array($method, array('all', 'shipping', 'direct'), true) ? $method : 'all',
         'search' => $get('search'), 'sort' => in_array($sort, array('name', 'quantity', 'orders', 'revenue', 'shipping', 'direct', 'last'), true) ? $sort : 'quantity',
         'direction' => $get('direction') === 'asc' ? 'asc' : 'desc');
