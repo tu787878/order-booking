@@ -3021,82 +3021,106 @@ document.addEventListener('click', function(event) {
     }
 });
 
-// Initialize marquee with dynamic width calculation
+// Animate announcements at every viewport width, including text that fits.
 function initializeMarquee() {
-    const marqueeParents = document.querySelectorAll('.marquee-parent');
-    
-    marqueeParents.forEach(function(parent) {
-        // Remove any duplicate/clone elements first
-        const allChildren = parent.querySelectorAll('.marquee-child');
-        if (allChildren.length > 1) {
-            // Keep only the first one, remove the rest
-            for (let i = 1; i < allChildren.length; i++) {
-                allChildren[i].remove();
-            }
-        }
-        
+    document.querySelectorAll('.marquee-parent').forEach(function(parent) {
         const marquee = parent.querySelector('.marquee-child');
-        if (!marquee) return;
-        
-        // Get the text content
-        const text = marquee.textContent || marquee.innerText;
-        if (!text.trim()) return;
-        
-        // Measure the actual width of the text
-        const tempSpan = document.createElement('span');
-        tempSpan.style.visibility = 'hidden';
-        tempSpan.style.position = 'absolute';
-        tempSpan.style.whiteSpace = 'nowrap';
-        tempSpan.style.fontSize = window.getComputedStyle(marquee).fontSize;
-        tempSpan.style.fontFamily = window.getComputedStyle(marquee).fontFamily;
-        tempSpan.style.fontWeight = window.getComputedStyle(marquee).fontWeight;
-        tempSpan.textContent = text;
-        document.body.appendChild(tempSpan);
-        const textWidth = tempSpan.offsetWidth;
-        document.body.removeChild(tempSpan);
-        
-        // Get container width
-        const containerWidth = parent.offsetWidth;
-        
-        // Only animate if text is wider than container
-        if (textWidth > containerWidth) {
-            // Reset styles for animation - single element only, no duplication
-            marquee.style.position = 'absolute';
-            marquee.style.left = '100%';
-            marquee.style.textAlign = 'left';
-            marquee.style.width = textWidth + 'px';
-            marquee.classList.remove('no-animate');
-            
-            // Set animation duration based on text width (adjust speed as needed)
-            // Speed: pixels per second (HIGHER number = FASTER, LOWER number = SLOWER)
-            // Formula: duration = distance / speed, so higher speed = shorter duration = faster
-            // Example: 80 = fast, 50 = medium, 30 = slow
-            const pixelsPerSecond = 80; // Increase this number to make it faster
-            const duration = (textWidth + containerWidth) / pixelsPerSecond;
-            marquee.style.animation = 'marquee-scroll ' + duration + 's linear infinite';
-        } else {
-            // Text fits, center it instead of animating
-            marquee.style.position = 'relative';
-            marquee.style.left = 'auto';
-            marquee.style.animation = 'none';
-            marquee.style.textAlign = 'center';
-            marquee.style.width = 'auto';
-            marquee.style.transform = 'none';
-            marquee.classList.add('no-animate');
-        }
+        if (!marquee || !marquee.textContent.trim() || !parent.offsetWidth) return;
+        marquee.classList.remove('no-animate');
+        marquee.style.width = 'max-content';
+        const distance = parent.clientWidth + marquee.offsetWidth;
+        marquee.style.setProperty('--marquee-distance', -distance + 'px');
+        marquee.style.animationDuration = (distance / 80) + 's';
     });
 }
-
-// Initialize marquee immediately and when DOM is ready
 initializeMarquee();
-
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeMarquee);
 }
-
-// Re-initialize on window resize
+window.addEventListener('load', initializeMarquee);
+if (document.fonts) document.fonts.ready.then(initializeMarquee);
 let resizeTimer;
 window.addEventListener('resize', function() {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(initializeMarquee, 250);
+});
+
+// Keep the theme and shop headers visible even inside overflow containers.
+jQuery(function () {
+    if (!document.querySelector('.menu-meals, .shop-content, .tcg-container')) return;
+    document.body.classList.add('dsmart-shop-navigation');
+    const headers = Array.from(document.querySelectorAll('.outer-wrap, .mobile-menu-toggle, #main-body > .header'))
+        .filter(function(node, index, nodes) {
+            return !nodes.some(function(other) { return other !== node && other.contains(node); });
+        }).map(function(node) {
+            const spacer = document.createElement('div');
+            spacer.className = 'dsmart-header-spacer';
+            node.before(spacer);
+            return {node: node, spacer: spacer};
+        });
+    const button = document.createElement('button');
+    button.id = 'dsmart-scroll-top';
+    button.type = 'button';
+    button.setAttribute('aria-label', 'Scroll to top');
+    button.textContent = '↑';
+    button.hidden = true;
+    document.body.appendChild(button);
+    button.addEventListener('click', function() {
+        window.scrollTo({top: 0, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'});
+    });
+    function updateNavigation() {
+        const admin = document.getElementById('wpadminbar');
+        let top = admin ? Math.max(0, admin.getBoundingClientRect().bottom) : 0;
+        function placeAnnouncement() {
+            const announcement = document.querySelector('.hihi');
+            if (announcement && announcement.getClientRects().length) {
+                announcement.style.top = top + 'px';
+                top += announcement.getBoundingClientRect().height;
+            }
+        }
+        headers.forEach(function(item) {
+            const node = item.node;
+            if (node.matches('#main-body > .header')) placeAnnouncement();
+            if (!node.getClientRects().length) {
+                item.spacer.style.height = '0px';
+                return;
+            }
+            const fixed = item.spacer.getBoundingClientRect().top <= top;
+            node.classList.toggle('dsmart-fixed-header', fixed);
+            if (fixed) {
+                const bounds = item.spacer.getBoundingClientRect();
+                node.style.setProperty('--dsmart-header-top', top + 'px');
+                node.style.setProperty('--dsmart-header-left', bounds.left + 'px');
+                node.style.setProperty('--dsmart-header-width', bounds.width + 'px');
+                item.spacer.style.height = node.getBoundingClientRect().height + 'px';
+                top += node.getBoundingClientRect().height;
+            } else {
+                item.spacer.style.height = '0px';
+            }
+        });
+        if (!headers.some(function(item) { return item.node.matches('#main-body > .header'); })) placeAnnouncement();
+        button.hidden = window.scrollY < 300;
+        let bottom = 20;
+        document.querySelectorAll('.dsmart-float-cart, .dsmart-show-notify').forEach(function(node) {
+            const rect = node.getBoundingClientRect();
+            if (rect.height && rect.bottom > 0 && rect.top < window.innerHeight && getComputedStyle(node).position === 'fixed') {
+                bottom = Math.max(bottom, window.innerHeight - rect.top + 12);
+            }
+        });
+        button.style.bottom = 'calc(' + bottom + 'px + env(safe-area-inset-bottom, 0px))';
+    }
+    let pending = false;
+    function scheduleUpdate() {
+        if (pending) return;
+        pending = true;
+        requestAnimationFrame(function() { pending = false; updateNavigation(); });
+    }
+    window.addEventListener('scroll', scheduleUpdate, {passive: true});
+    window.addEventListener('resize', scheduleUpdate);
+    window.addEventListener('load', scheduleUpdate);
+    if (window.ResizeObserver) {
+        const observer = new ResizeObserver(scheduleUpdate);
+        headers.forEach(function(item) { observer.observe(item.node); });
+    }
+    updateNavigation();
 });

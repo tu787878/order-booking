@@ -50,7 +50,7 @@ body.dark-style .current_category_box{
       transform: translateX(0);
     }
     100% {
-      transform: translateX(-100%);
+      transform: translateX(var(--marquee-distance, -100%));
     }
   }
 
@@ -2319,3 +2319,33 @@ body:not(.dark-style) .ds-searchform .cs-btn{
         display: none;
     }
 }
+/* Shop navigation stays available on desktop and mobile. */
+.dsmart-fixed-header {
+    position: fixed !important;
+    top: var(--dsmart-header-top) !important;
+    left: var(--dsmart-header-left) !important;
+    width: var(--dsmart-header-width) !important;
+    box-sizing: border-box;
+    z-index: 1000 !important;
+}
+.dsmart-header-spacer { width: 100%; flex-shrink: 0; }
+body.dsmart-shop-navigation #goto-top { display: none !important; }
+#dsmart-scroll-top {
+    position: fixed;
+    right: 20px;
+    z-index: 1001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: #555;
+    color: #fff;
+    font: 28px/1 sans-serif;
+    cursor: pointer;
+}
+#dsmart-scroll-top[hidden] { display: none !important; }
+#dsmart-scroll-top:focus-visible { outline: 3px solid #ff8000; outline-offset: 3px; }
