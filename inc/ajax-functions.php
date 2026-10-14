@@ -677,6 +677,18 @@ function dsmart_add_coupon_in_cart()
 		}
 		$coupon_notify = check_coupon_available($coupon_code);
 		if ($coupon_notify == 1) {
+			$min_order_apply = dsmart_field('min_order_apply', $coupon_id);
+			if ($min_order_apply != "" && ds_get_cart_total_item_use_coupon() < ds_convert_price($min_order_apply)) {
+				$minimum = rtrim(rtrim(number_format(ds_convert_price($min_order_apply), 2, ',', '.'), '0'), ',');
+				$message = sprintf(__('Dieser Gutschein ist nur für Bestellungen ab %s € gültig.', 'dsmart'), $minimum);
+				echo json_encode(array(
+					'check' => false,
+					'message2' => $message,
+					'message' => '<div class="alert alert-danger">' . esc_html($message) . '</div>',
+					'html' => get_total_cart($shipping_method, $data),
+				));
+				exit;
+			}
 			$coupon_option = dsmart_field('coupon_option', $coupon_id);
 			if ($coupon_option == "percent") {
 				$list_coupon1[] = $coupon_code;

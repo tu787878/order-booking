@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.9
+- Show the German minimum-order requirement when a coupon is applied below its configured order minimum.
+
 ## 1.8.8
 - Enabled announcement bar animation on desktop and mobile.
 - Kept shop headers visible while scrolling on desktop and mobile.
