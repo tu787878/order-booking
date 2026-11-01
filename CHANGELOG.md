@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.14
+- Show the closing bar whenever an enabled pickup or delivery service is closed, including lunch breaks while the other service remains open.
+
 ## 1.8.13
 - Fixed invisible checkout field labels in the white theme while preserving dark-theme label colors.
 

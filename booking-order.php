@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.8.13
+ * Version: 1.8.14
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -14,7 +14,7 @@ require_once BOOKING_ORDER_PATH2 . 'inc/preparation-time.php';
 
 // Plugin configuration
 $plugin_config = [
-    'version' => '1.8.13',
+    'version' => '1.8.14',
     'plugin_file' => __FILE__,
     'plugin_dir' => plugin_dir_path(__FILE__),
     'plugin_url' => plugin_dir_url(__FILE__),
@@ -2783,7 +2783,12 @@ function dsmart_float_cart()
     $dsmart_method_ship = get_option('dsmart_method_ship');
     $dsmart_method_direct = get_option('dsmart_method_direct');
     if ($close_shop_text != "") {
-        $closing = !(($check1 && $dsmart_method_ship === 'on') || ($check2 && $dsmart_method_direct === 'on'));
+        // A break in either enabled service must remain visible to customers.
+        $shipping_enabled = $dsmart_method_ship === 'on';
+        $pickup_enabled = $dsmart_method_direct === 'on';
+        $closing = ($shipping_enabled && !$check1)
+            || ($pickup_enabled && !$check2)
+            || (!$shipping_enabled && !$pickup_enabled);
 
         if ($closing && is_page_template('templates/taxonomy-product-cat.php')) { ?>
             <div class="dsmart-show-notify">
