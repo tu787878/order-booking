@@ -1,7 +1,8 @@
 # Changelog
 
 ## 1.8.14
-- Show the closing bar whenever an enabled pickup or delivery service is closed, including lunch breaks while the other service remains open.
+- Show close_shop_text when no enabled pickup or delivery service is currently open, including breaks and times before opening or after closing.
+- Render the closing bar on product-category menu URLs as well as menu Pages.
 
 ## 1.8.13
 - Fixed invisible checkout field labels in the white theme while preserving dark-theme label colors.

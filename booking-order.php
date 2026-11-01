@@ -2783,14 +2783,12 @@ function dsmart_float_cart()
     $dsmart_method_ship = get_option('dsmart_method_ship');
     $dsmart_method_direct = get_option('dsmart_method_direct');
     if ($close_shop_text != "") {
-        // A break in either enabled service must remain visible to customers.
+        // The configured message describes availability now, not future order slots.
         $shipping_enabled = $dsmart_method_ship === 'on';
         $pickup_enabled = $dsmart_method_direct === 'on';
-        $closing = ($shipping_enabled && !$check1)
-            || ($pickup_enabled && !$check2)
-            || (!$shipping_enabled && !$pickup_enabled);
+        $closing = !(($shipping_enabled && $check1) || ($pickup_enabled && $check2));
 
-        if ($closing && is_page_template('templates/taxonomy-product-cat.php')) { ?>
+        if ($closing && (is_tax('product-cat') || is_page_template('templates/taxonomy-product-cat.php'))) { ?>
             <div class="dsmart-show-notify">
                 <div class="dsmart-show-notify-wrap">
                     <?php echo $close_shop_text; ?>
