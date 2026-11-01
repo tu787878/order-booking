@@ -255,15 +255,16 @@ jQuery(document).ready(function ($) {
                 <span class="coupon-text">{{price}}</span>
             </td>
         </tr>`;
-  function show_alert(text) {
-    var time = bookingVars.popup_time;
+  function show_alert(text, minimumTime) {
+    var time = Math.max(Number(bookingVars.popup_time) || 3000, minimumTime || 0);
     $(".popup-alert").remove();
     $body.append(
       `<div class="popup-alert"><div class="popup-alert-wrap">${text}</div></div>`
     );
-    $(".popup-alert").fadeIn();
+    var $alert = $(".popup-alert");
+    $alert.fadeIn();
     setTimeout(function () {
-      $(".popup-alert").fadeOut();
+      $alert.fadeOut();
     }, time);
   }
   function setCookie(name, value, days) {
@@ -1045,7 +1046,7 @@ jQuery(document).ready(function ($) {
           $bookLoading.hide();
           $Notify.show().html(data.message);
           if (typeof data.message2 !== "undefined") {
-            show_alert(data.message2);
+            show_alert(data.message2, 8000);
           }
           $(".cart_totals .dsmart-table").html(data.html);
           //window.location.reload();

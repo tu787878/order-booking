@@ -3,16 +3,18 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.8.9
+ * Version: 1.8.13
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
 define('BOOKING_ORDER_PATH2', plugin_dir_path(__FILE__));
 date_default_timezone_set('Europe/Berlin');
 
+require_once BOOKING_ORDER_PATH2 . 'inc/preparation-time.php';
+
 // Plugin configuration
 $plugin_config = [
-    'version' => '1.8.9',
+    'version' => '1.8.13',
     'plugin_file' => __FILE__,
     'plugin_dir' => plugin_dir_path(__FILE__),
     'plugin_url' => plugin_dir_url(__FILE__),
@@ -1569,8 +1571,8 @@ function check_time_with_time_shop($time, $current_time = null, $current_date = 
         $time_data = date('H:i', strtotime($time));
         $time = new DateTime($time);
     } else {
-        $zxc_time   = date('H:i');
-        $time = new DateTime($zxc_time);
+        $time_data = date('H:i');
+        $time = new DateTime($time_data);
     }
     $close_shop = get_option('dsmart_close_shop');
     $current_date_text = custom_date();
@@ -1617,6 +1619,14 @@ function check_time_with_time_shop($time, $current_time = null, $current_date = 
     } elseif ($current_time != null && date('H:i', strtotime($current_time)) > $time_data) {
         return false;
     } else {
+        // Weekly breaks also apply within date-specific opening hours.
+        foreach ($closed_time_array as $item_data) {
+            $closed_from = date('H:i', strtotime($item_data['from']));
+            $closed_to = date('H:i', strtotime($item_data['to']));
+            if ($time_data >= $closed_from && $time_data <= $closed_to) {
+                return false;
+            }
+        }
         if (count($time_shop_array) > 0) {
             $check_data = true;
             foreach ($time_shop_array as $item_data) {
@@ -2773,29 +2783,7 @@ function dsmart_float_cart()
     $dsmart_method_ship = get_option('dsmart_method_ship');
     $dsmart_method_direct = get_option('dsmart_method_direct');
     if ($close_shop_text != "") {
-        $check_time_open = true;
-        $time1 = get_close_time_shop_nodelay();
-        $time2 = get_close_time_shop2_nodelay();
-        $now1 = new DateTime(get_current_time());
-        $now2 = new DateTime(get_current_time2());
-        if (count($time1) > 0) {
-            /*foreach ($time1 as $value) {
-	    		$begin = new DateTime($value[0]);
-				$end = new DateTime($value[1]);
-				if($now1 > $begin && $now1 < $end){
-					$check_time_open = false;
-				}
-	    	}*/
-            foreach ($time2 as $value) {
-                $begin = new DateTime($value[0]);
-                $end = new DateTime($value[1]);
-                if ($now2 > $begin && $now2 < $end) {
-                    $check_time_open = false;
-                }
-            }
-        }
-
-        $closing = !(($check1 && $dsmart_method_ship) || ($check2 && $dsmart_method_direct));
+        $closing = !(($check1 && $dsmart_method_ship === 'on') || ($check2 && $dsmart_method_direct === 'on'));
 
         if ($closing && is_page_template('templates/taxonomy-product-cat.php')) { ?>
             <div class="dsmart-show-notify">
@@ -2850,7 +2838,7 @@ function custom_date($date = null)
 function get_current_time()
 {
     date_default_timezone_set('Europe/Berlin');
-    $delay_time = get_option('delay_time');
+    $delay_time = ds_get_preparation_time('delay_time');
     /*if($delay_time != "" && $delay_time != 0){
         $current_time = date('H:i',strtotime("+".$delay_time." minutes"));
     }else{*/
@@ -2861,7 +2849,7 @@ function get_current_time()
 function get_current_time2()
 {
     date_default_timezone_set('Europe/Berlin');
-    $delay_time = get_option('delay_delivery');
+    $delay_time = ds_get_preparation_time('delay_delivery');
     $current_time = date('H:i');
     return $current_time;
 }
@@ -2869,7 +2857,7 @@ function get_current_time2()
 function get_close_time_shop_nodelay()
 {
     date_default_timezone_set('Europe/Berlin');
-    $delay_time = get_option('delay_time');
+    $delay_time = ds_get_preparation_time('delay_time');
     $current_time = date('H:i');
     $time_data = date('H:i', strtotime($current_time));
     $time = new DateTime($current_time);
@@ -2941,7 +2929,7 @@ function get_close_time_shop_nodelay()
 function get_close_time_shop2_nodelay()
 {
     date_default_timezone_set('Europe/Berlin');
-    $delay_time = get_option('delay_delivery');
+    $delay_time = ds_get_preparation_time('delay_delivery');
     $current_time = date('H:i');
     $time_data = date('H:i', strtotime($current_time));
     $time = new DateTime($current_time);
@@ -3115,7 +3103,7 @@ function get_close_time_category($t_id, $specific_date = null)
 function get_close_time_shop()
 {
     date_default_timezone_set('Europe/Berlin');
-    $delay_time = get_option('delay_time');
+    $delay_time = ds_get_preparation_time('delay_time');
     if ($delay_time != "" && $delay_time != 0) {
         $current_time = date('H:i', strtotime("+" . $delay_time . " minutes"));
     } else {
@@ -3195,7 +3183,7 @@ function get_close_time_shop()
 function get_close_time_shop2()
 {
     date_default_timezone_set('Europe/Berlin');
-    $delay_time = get_option('delay_delivery');
+    $delay_time = ds_get_preparation_time('delay_delivery');
     if ($delay_time != "" && $delay_time != 0) {
         $current_time = date('H:i', strtotime("+" . $delay_time . " minutes"));
     } else {
@@ -3303,7 +3291,7 @@ function get_close_time_shop_all_week()
     $dsmart_custom_date = get_option('dsmart_custom_date');
     // $closed_time = get_option('closed_time');
     $closed_time = get_option('closed_time_2');
-    $delay_time = get_option('delay_delivery');
+    $delay_time = ds_get_preparation_time('delay_delivery');
     $date_from = Date('d-m-Y', strtotime(date('Y-m-d')));
     $date_to = Date('d-m-Y', strtotime("+7 day", strtotime(date('Y-m-d'))));
     $period = new DatePeriod(

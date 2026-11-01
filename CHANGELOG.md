@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.8.13
+- Fixed invisible checkout field labels in the white theme while preserving dark-theme label colors.
+
+## 1.8.12
+- Fixed the closing bar during weekly breaks within date-specific opening hours, and ignored disabled delivery/pickup methods when checking whether the restaurant is open.
+
+## 1.8.11
+- Added multiple daily preparation-time windows for delivery and pickup in both settings screens, overriding the fixed time during matching windows, including overnight periods.
+
+## 1.8.10
+- Keep coupon error notifications visible for at least eight seconds and prevent older popup timers from hiding newer notifications.
+
 ## 1.8.9
 - Show the German minimum-order requirement when a coupon is applied below its configured order minimum.
 

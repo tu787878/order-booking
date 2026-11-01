@@ -359,6 +359,7 @@ if(isset($_POST['submit-setting'])){
 	//=========================================================
 	$back_link_in_cart = $_POST['back_link_in_cart'];
 	update_option('back_link_in_cart', $back_link_in_cart, 'yes');
+	ds_save_preparation_windows();
 	update_option('delay_time',$delay_time,'yes');
 	$delay_delivery = $_POST['delay_delivery'];
 	update_option('delay_delivery',$delay_delivery,'yes');
@@ -595,10 +596,12 @@ $total_order_in_date = (get_option('total_order_'.$current_date) != "") ? intval
 		<div class="form-group">
 			<label><?php _e('Delay Time for order'); ?></label>
 			<input type="number" name="delay_time" class="dsmart-field" value="<?php echo $delay_time; ?>">
+			<?php ds_render_preparation_windows('delay_time'); ?>
 		</div>
 		<div class="form-group">
 			<label><?php _e('Delay Time for delivery'); ?></label>
 			<input type="number" name="delay_delivery" class="dsmart-field" value="<?php echo $delay_delivery; ?>">
+			<?php ds_render_preparation_windows('delay_delivery'); ?>
 		</div>		
 		<div class="form-group">
 			<label><?php _e('Mwst für Lieferung %'); ?></label>

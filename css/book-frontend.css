@@ -2349,3 +2349,8 @@ body.dsmart-shop-navigation #goto-top { display: none !important; }
 }
 #dsmart-scroll-top[hidden] { display: none !important; }
 #dsmart-scroll-top:focus-visible { outline: 3px solid #ff8000; outline-offset: 3px; }
+
+/* Keep checkout field labels readable in the white theme. */
+body:not(.dark-style) .checkout-page .dsmart-section label {
+    color: #111111 !important;
+}

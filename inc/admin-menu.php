@@ -479,6 +479,7 @@ function general_booking_setting()
 
 		//delay time
 		//=======================================================
+		ds_save_preparation_windows();
 		update_option('delay_time', $delay_time, 'yes');
 		update_option('delay_delivery', $delay_delivery, 'yes');
 
@@ -1311,6 +1312,7 @@ function general_booking_setting()
 				<div id="delay_time_delivery" <?php if ($dsmart_method_ship !== "on") {echo 'style="display:none"';}?> class="form-group">
 					<h4><?php _e('Bearbeitungszeit für Lieferung') ?></h4>
 					<label><input type="number" name="delay_time" placeholder="<?php _e("Please enter your time which you want to delay(minutes)"); ?>" value="<?php echo $delay_time; ?>" /></label>
+					<?php ds_render_preparation_windows('delay_time'); ?>
 				</div>
 				<div id="time_delivery_step" <?php if ($dsmart_method_ship !== "on") {echo 'style="display:none"';}?> class="form-group">
 					<h4><?php _e('Zeitsabstand für Lieferung') ?></h4>
@@ -1319,6 +1321,7 @@ function general_booking_setting()
 				<div id="delay_time_in_shop" <?php if ($dsmart_method_direct !== "on") {echo 'style="display:none"';}?> class="form-group">
 					<h4><?php _e('Bearbeitungszeit für Abholung') ?></h4>
 					<label><input type="number" name="delay_delivery" placeholder="<?php _e("Please enter your time which you want to delay(minutes)"); ?>" value="<?php echo $delay_delivery; ?>" /></label>
+					<?php ds_render_preparation_windows('delay_delivery'); ?>
 				</div>
 				<div id="time_takeaway_step" <?php if ($dsmart_method_direct !== "on") {echo 'style="display:none"';}?> class="form-group">
 					<h4><?php _e('Zeitsabstand für Abholung') ?></h4>
