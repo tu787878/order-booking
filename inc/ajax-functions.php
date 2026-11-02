@@ -771,6 +771,22 @@ function check_can_shipping_or_not()
 	} else {
 		$shipping_time 	= $_REQUEST['shipping_time'];
 	}
+	// Calculate from the raw selection once, before validation and cookie storage.
+	$prepared = ds_prepare_selected_time(
+		$shipping_method === 'shipping' ? 'delay_time' : 'delay_delivery',
+		$shipping_method === 'shipping' ? $delivery_time : $shipping_time,
+		$shipping_method === 'shipping' ? $delivery_date : null
+	);
+	if ($prepared === false || ($shipping_method !== 'shipping' && $prepared['date'] !== null && $prepared['date'] !== date('d-m-Y'))) {
+		echo json_encode(array('check' => false, 'message' => __('Bitte wählen Sie eine gültige Zeit innerhalb des heutigen Tages.', 'dsmart')));
+		exit;
+	}
+	if ($shipping_method === 'shipping') {
+		$delivery_time = $prepared['time'];
+		$delivery_date = $prepared['date'];
+	} else {
+		$shipping_time = $prepared['time'];
+	}
 	$dsmart_distance 		= get_option('dsmart_distance');
 	$close_shop 			= get_option('dsmart_close_shop');
 	$dsmart_min_order 		= ds_convert_price(get_option('dsmart_min_order'));
@@ -828,6 +844,10 @@ function check_can_shipping_or_not()
 		$shop = get_shop_data_by_id($shop_id);
 		$current_time = date('H:i', strtotime(date('H:i')));
 		if ($shipping_method == "shipping") {
+			if (!check_time_with_time_shop($delivery_time, null, $delivery_date, $shipping_method)) {
+				echo json_encode(array('check' => false, 'message' => __('Die berechnete Zeit liegt außerhalb der Öffnungszeiten. Bitte wählen Sie eine andere Zeit.', 'dsmart')));
+				exit;
+			}
 			if ($check_zipcode == true) {
 				if (isset($_POST['filled_zipcode']) && $_POST['filled_zipcode'] != "") {
 					$zipcode = $_POST['filled_zipcode'];

@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.15
+- Calculate preparation from the customer’s selected time and add it to that selection, using the fixed default outside custom windows; show the resulting time before checkout and validate it before saving.
+
 ## 1.8.14
 - Show close_shop_text when no enabled pickup or delivery service is currently open, including breaks and times before opening or after closing.
 - Render the closing bar on product-category menu URLs as well as menu Pages.

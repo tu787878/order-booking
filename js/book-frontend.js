@@ -3125,3 +3125,34 @@ jQuery(function () {
     }
     updateNavigation();
 });
+
+// Show the calculated time while keeping the raw selection for server calculation.
+jQuery(function ($) {
+  function showPreparedTime() {
+    if (!bookingVars.preparation) return;
+    var pickup = $("input[name=shipping_time]");
+    var delivery = $("input[name=delivery_time]");
+    [[pickup, bookingVars.preparation.pickup], [delivery, bookingVars.preparation.delivery]].forEach(function (entry) {
+      var input = entry[0], config = entry[1];
+      if (!input.length) return;
+      var note = input.parent().find('.ds-prepared-time');
+      if (!note.length) note = $('<p class="ds-prepared-time" aria-live="polite"></p>').appendTo(input.parent());
+      var clock = input.val();
+      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(clock)) { note.text(''); return; }
+      var minutes = Math.max(0, Number(config.default) || 0);
+      config.windows.some(function (window) {
+        var match = window.from < window.to
+          ? clock >= window.from && clock < window.to
+          : clock >= window.from || clock < window.to;
+        if (match) minutes = window.minutes;
+        return match;
+      });
+      var parts = clock.split(':');
+      var total = Number(parts[0]) * 60 + Number(parts[1]) + minutes;
+      var ready = String(Math.floor(total / 60) % 24).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
+      note.text('Liefer- / Abholzeit inkl. Bearbeitung: ' + ready + (total >= 1440 ? ' (Folgetag)' : '') + ' (+' + minutes + ' Min.)');
+    });
+  }
+  $(document).on('change', 'input[name=delivery_time], input[name=shipping_time], input[name=delivery_date], .ui-timepicker-select', showPreparedTime);
+  showPreparedTime();
+});
