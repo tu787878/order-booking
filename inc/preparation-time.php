@@ -42,23 +42,66 @@ function ds_get_preparation_time($option, $timestamp = null)
     return $default;
 }
 
-/** Add preparation once to an explicit selection; preserve the ASAP option. */
-function ds_prepare_selected_time($option, $clock, $date = null)
+/** Add preparation gaps to opening ranges before rendering the time selector. */
+function ds_preparation_closed_ranges($ranges, $option, $date, $now = null)
 {
-    if ($clock === 'So schnell wie möglich') {
-        return array('time' => $clock, 'date' => $date, 'minutes' => 0);
-    }
-    if (!is_string($clock) || !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $clock)) {
-        return false;
-    }
     $zone = new DateTimeZone('Europe/Berlin');
-    $date = $date ?: (new DateTimeImmutable('now', $zone))->format('d-m-Y');
-    if (!is_string($date)) return false;
-    $selected = DateTimeImmutable::createFromFormat('!d-m-Y H:i', $date . ' ' . $clock, $zone);
-    if (!$selected || $selected->format('d-m-Y H:i') !== $date . ' ' . $clock) return false;
-    $minutes = max(0, (int) ds_get_preparation_time($option, $selected->getTimestamp()));
-    $ready = $selected->modify('+' . $minutes . ' minutes');
-    return array('time' => $ready->format('H:i'), 'date' => $ready->format('d-m-Y'), 'minutes' => $minutes);
+    $now = (new DateTimeImmutable('@' . ($now === null ? time() : $now)))->setTimezone($zone);
+    $today = $now->format('d-m-Y') === $date;
+    $current = (int) $now->format('H') * 60 + (int) $now->format('i');
+    $windows = ds_sanitize_preparation_windows(get_option($option . '_windows'));
+    $to_minute = function ($clock) {
+        $parts = explode(':', $clock);
+        return (int) $parts[0] * 60 + (int) $parts[1];
+    };
+    $closed = array_fill(0, 1440, false);
+    foreach ((array) $ranges as $range) {
+        $start = $to_minute($range[0]);
+        $end = $to_minute($range[1]);
+        for ($minute = 0; $minute < 1440; $minute++) {
+            if ($start <= $end ? ($minute >= $start && $minute < $end) : ($minute >= $start || $minute < $end)) {
+                $closed[$minute] = true;
+            }
+        }
+    }
+    $result = $closed;
+    $segment_start = 0;
+    $previous_rule = null;
+    for ($minute = 0; $minute < 1440; $minute++) {
+        if ($closed[$minute]) {
+            $previous_rule = null;
+            continue;
+        }
+        $rule = 'default';
+        $preparation = max(0, (int) get_option($option));
+        foreach ($windows as $index => $window) {
+            $start = $to_minute($window['from']);
+            $end = $to_minute($window['to']);
+            if ($start < $end ? ($minute >= $start && $minute < $end) : ($minute >= $start || $minute < $end)) {
+                $rule = $index;
+                $preparation = $window['minutes'];
+                break;
+            }
+        }
+        if ($rule !== $previous_rule) {
+            $segment_start = $minute;
+            $previous_rule = $rule;
+        }
+        $base = $today ? max($segment_start, $current) : $segment_start;
+        $result[$minute] = $minute < $base + $preparation;
+    }
+    $output = array();
+    $start = null;
+    $clock = function ($minute) { return sprintf('%02d:%02d', intdiv($minute, 60), $minute % 60); };
+    for ($minute = 0; $minute <= 1440; $minute++) {
+        $blocked = $minute < 1440 && $result[$minute];
+        if ($blocked && $start === null) $start = $minute;
+        if (!$blocked && $start !== null) {
+            $output[] = array($clock($start), $clock($minute));
+            $start = null;
+        }
+    }
+    return $output;
 }
 
 function ds_save_preparation_windows()
@@ -106,7 +149,7 @@ function ds_render_preparation_windows($option)
     ?>
     <div data-preparation-windows data-next-index="<?php echo count($windows); ?>">
         <p><?php echo esc_html__('Individuelle Bearbeitungszeiten (täglich)', 'dsmart'); ?></p>
-        <p><?php echo esc_html__('Außerhalb dieser Zeitfenster gilt die feste Bearbeitungszeit. Beginn inklusive, Ende exklusive. Bei Überschneidungen gilt das erste passende Zeitfenster. Die ausgewählte Uhrzeit bestimmt die Bearbeitungszeit, die zur Auswahl addiert wird. Zeiten gelten in Europe/Berlin; Zeitfenster über Mitternacht sind möglich.', 'dsmart'); ?></p>
+        <p><?php echo esc_html__('Außerhalb dieser Zeitfenster gilt die feste Bearbeitungszeit. Beginn inklusive, Ende exklusive. Bei Überschneidungen gilt das erste passende Zeitfenster. Die Bearbeitungszeit bestimmt die erste verfügbare Uhrzeit je Zeitfenster. Die gewählte Liefer- / Abholzeit bleibt unverändert. Zeiten gelten in Europe/Berlin; Zeitfenster über Mitternacht sind möglich.', 'dsmart'); ?></p>
         <div data-preparation-rows>
         <?php foreach ($windows as $index => $window) {
             ds_render_preparation_window_row($option, $index, $window);

@@ -771,21 +771,24 @@ function check_can_shipping_or_not()
 	} else {
 		$shipping_time 	= $_REQUEST['shipping_time'];
 	}
-	// Calculate from the raw selection once, before validation and cookie storage.
-	$prepared = ds_prepare_selected_time(
-		$shipping_method === 'shipping' ? 'delay_time' : 'delay_delivery',
-		$shipping_method === 'shipping' ? $delivery_time : $shipping_time,
-		$shipping_method === 'shipping' ? $delivery_date : null
-	);
-	if ($prepared === false || ($shipping_method !== 'shipping' && $prepared['date'] !== null && $prepared['date'] !== date('d-m-Y'))) {
-		echo json_encode(array('check' => false, 'message' => __('Bitte wählen Sie eine gültige Zeit innerhalb des heutigen Tages.', 'dsmart')));
-		exit;
-	}
-	if ($shipping_method === 'shipping') {
-		$delivery_time = $prepared['time'];
-		$delivery_date = $prepared['date'];
-	} else {
-		$shipping_time = $prepared['time'];
+	// Validate the selected slot without changing the customer’s chosen time.
+	$selected_time = $shipping_method === 'shipping' ? $delivery_time : $shipping_time;
+	if ($selected_time !== 'So schnell wie möglich') {
+		$selected_date = $shipping_method === 'shipping' ? $delivery_date : date('d-m-Y');
+		if ($selected_date === date('d-m-Y')) {
+			$blocked = $shipping_method === 'shipping' ? get_close_time_shop() : get_close_time_shop2();
+		} else {
+			$week = get_close_time_shop_all_week();
+			$blocked = isset($week[$selected_date]) ? $week[$selected_date] : array(array('00:00', '24:00'));
+		}
+		$valid = is_string($selected_time) && preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $selected_time);
+		foreach ($blocked as $range) {
+			if ($selected_time >= $range[0] && $selected_time < $range[1]) $valid = false;
+		}
+		if (!$valid) {
+			echo json_encode(array('check' => false, 'message' => __('Bitte wählen Sie eine verfügbare Liefer- / Abholzeit.', 'dsmart')));
+			exit;
+		}
 	}
 	$dsmart_distance 		= get_option('dsmart_distance');
 	$close_shop 			= get_option('dsmart_close_shop');

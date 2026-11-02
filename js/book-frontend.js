@@ -1239,13 +1239,13 @@ jQuery(document).ready(function ($) {
     timeFormat: "H:i",
     useSelect: true,
     disableTimeRanges: bookingVars.close_time,
-    step: parseInt(bookingVars.takeaway_step, 10),
+    step: dsPreparationStep(bookingVars.close_time, bookingVars.takeaway_step),
   });
   $(".select-wrap .timepicker2").timepicker({
     timeFormat: "H:i",
     useSelect: true,
     disableTimeRanges: bookingVars.close_time2,
-    step: parseInt(bookingVars.delivery_step, 10),
+    step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step),
   });
   if ($(".select-wrap .timepicker2").size() > 0) {
     if (bookingVars.buynow == "1") {
@@ -1274,14 +1274,14 @@ jQuery(document).ready(function ($) {
         timeFormat: "H:i",
         useSelect: true,
         disableTimeRanges: bookingVars.close_time2,
-        step: parseInt(bookingVars.delivery_step, 10),
+        step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step),
       });
     } else {
       $(".select-wrap .timepicker2").timepicker({
         timeFormat: "H:i",
         useSelect: true,
         disableTimeRanges: bookingVars.close_all[value],
-        step: parseInt(bookingVars.delivery_step, 10),
+        step: dsPreparationStep(bookingVars.close_all[value], bookingVars.delivery_step),
       });
     }
     //var time_value = $("select[name=ui-timepicker-delivery_time] option:not([disabled]):first").attr("value");
@@ -3126,33 +3126,16 @@ jQuery(function () {
     updateNavigation();
 });
 
-// Show the calculated time while keeping the raw selection for server calculation.
-jQuery(function ($) {
-  function showPreparedTime() {
-    if (!bookingVars.preparation) return;
-    var pickup = $("input[name=shipping_time]");
-    var delivery = $("input[name=delivery_time]");
-    [[pickup, bookingVars.preparation.pickup], [delivery, bookingVars.preparation.delivery]].forEach(function (entry) {
-      var input = entry[0], config = entry[1];
-      if (!input.length) return;
-      var note = input.parent().find('.ds-prepared-time');
-      if (!note.length) note = $('<p class="ds-prepared-time" aria-live="polite"></p>').appendTo(input.parent());
-      var clock = input.val();
-      if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(clock)) { note.text(''); return; }
-      var minutes = Math.max(0, Number(config.default) || 0);
-      config.windows.some(function (window) {
-        var match = window.from < window.to
-          ? clock >= window.from && clock < window.to
-          : clock >= window.from || clock < window.to;
-        if (match) minutes = window.minutes;
-        return match;
-      });
-      var parts = clock.split(':');
-      var total = Number(parts[0]) * 60 + Number(parts[1]) + minutes;
-      var ready = String(Math.floor(total / 60) % 24).padStart(2, '0') + ':' + String(total % 60).padStart(2, '0');
-      note.text('Liefer- / Abholzeit inkl. Bearbeitung: ' + ready + (total >= 1440 ? ' (Folgetag)' : '') + ' (+' + minutes + ' Min.)');
-    });
-  }
-  $(document).on('change', 'input[name=delivery_time], input[name=shipping_time], input[name=delivery_date], .ui-timepicker-select', showPreparedTime);
-  showPreparedTime();
-});
+// Include exact preparation boundaries alongside the configured time grid.
+function dsPreparationStep(ranges, configuredStep) {
+  var step = Math.max(1, parseInt(configuredStep, 10) || 15);
+  var points = [];
+  for (var minute = 0; minute < 1440; minute += step) points.push(minute);
+  (ranges || []).forEach(function (range) {
+    var parts = range[1].split(':');
+    var end = Number(parts[0]) * 60 + Number(parts[1]);
+    if (end > 0 && end < 1440) points.push(end);
+  });
+  points = points.filter(function (point, index, all) { return all.indexOf(point) === index; }).sort(function (a, b) { return a - b; });
+  return function (index) { return index > 0 && index < points.length ? points[index] - points[index - 1] : step; };
+}
