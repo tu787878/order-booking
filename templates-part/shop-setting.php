@@ -359,6 +359,9 @@ if(isset($_POST['submit-setting'])){
 	//=========================================================
 	$back_link_in_cart = $_POST['back_link_in_cart'];
 	update_option('back_link_in_cart', $back_link_in_cart, 'yes');
+	foreach (array('dsmart_delivery_time_step', 'dsmart_takeaway_time_step') as $step_option) {
+		if (isset($_POST[$step_option]) && is_scalar($_POST[$step_option])) update_option($step_option, max(1, min(1440, (int) $_POST[$step_option])), 'yes');
+	}
 	ds_save_preparation_windows();
 	update_option('delay_time',$delay_time,'yes');
 	$delay_delivery = $_POST['delay_delivery'];
@@ -597,11 +600,17 @@ $total_order_in_date = (get_option('total_order_'.$current_date) != "") ? intval
 			<label><?php _e('Delay Time for order'); ?></label>
 			<input type="number" name="delay_time" class="dsmart-field" value="<?php echo $delay_time; ?>">
 			<?php ds_render_preparation_windows('delay_time'); ?>
+			<label>Zeitabstand für Lieferung</label>
+			<input type="number" min="1" max="1440" step="1" name="dsmart_delivery_time_step" value="<?php echo esc_attr(get_option('dsmart_delivery_time_step', 15)); ?>">
+			<?php ds_render_preparation_windows('dsmart_delivery_time_step', true); ?>
 		</div>
 		<div class="form-group">
 			<label><?php _e('Delay Time for delivery'); ?></label>
 			<input type="number" name="delay_delivery" class="dsmart-field" value="<?php echo $delay_delivery; ?>">
 			<?php ds_render_preparation_windows('delay_delivery'); ?>
+			<label>Zeitabstand für Abholung</label>
+			<input type="number" min="1" max="1440" step="1" name="dsmart_takeaway_time_step" value="<?php echo esc_attr(get_option('dsmart_takeaway_time_step', 15)); ?>">
+			<?php ds_render_preparation_windows('dsmart_takeaway_time_step', true); ?>
 		</div>		
 		<div class="form-group">
 			<label><?php _e('Mwst für Lieferung %'); ?></label>

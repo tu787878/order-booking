@@ -104,6 +104,13 @@ function ds_preparation_closed_ranges($ranges, $option, $date, $now = null)
     return $output;
 }
 
+function ds_sanitize_interval_windows($rows)
+{
+    return array_values(array_filter(ds_sanitize_preparation_windows($rows), function ($row) {
+        return $row['minutes'] > 0;
+    }));
+}
+
 function ds_save_preparation_windows()
 {
     if (!isset($_POST['ds_preparation_nonce']) || !is_string($_POST['ds_preparation_nonce']) ||
@@ -114,16 +121,28 @@ function ds_save_preparation_windows()
         $key = $option . '_windows';
         update_option($key, ds_sanitize_preparation_windows(isset($_POST[$key]) ? wp_unslash($_POST[$key]) : array()), 'yes');
     }
+    foreach (array('dsmart_delivery_time_step', 'dsmart_takeaway_time_step') as $option) {
+        if (!isset($_POST[$option . '_windows_present'])) continue;
+        $key = $option . '_windows';
+        update_option($key, ds_sanitize_interval_windows(isset($_POST[$key]) ? wp_unslash($_POST[$key]) : array()), 'yes');
+    }
 }
 
-function ds_render_preparation_windows($option)
+function ds_render_preparation_windows($option, $interval = false)
 {
     static $script_rendered = false;
-    $windows = ds_sanitize_preparation_windows(get_option($option . '_windows'));
+    $windows = $interval ? ds_sanitize_interval_windows(get_option($option . '_windows')) : ds_sanitize_preparation_windows(get_option($option . '_windows'));
     if (!$script_rendered) {
         wp_nonce_field('ds_preparation_windows', 'ds_preparation_nonce');
         ?>
         <script>
+        document.addEventListener('invalid', function (event) {
+            var parent = event.target.parentElement;
+            while (parent) {
+                if (parent.tagName === 'DETAILS') parent.open = true;
+                parent = parent.parentElement;
+            }
+        }, true);
         document.addEventListener('click', function (event) {
             var button = event.target.closest('[data-preparation-add], [data-preparation-remove]');
             if (!button) return;
@@ -131,6 +150,7 @@ function ds_render_preparation_windows($option)
             if (!container) return;
             if (button.hasAttribute('data-preparation-remove')) {
                 button.closest('[data-preparation-row]').remove();
+                container.closest('.ds-window-editor').querySelector('.ds-window-count').textContent = container.querySelectorAll('[data-preparation-rows] > [data-preparation-row]').length;
                 return;
             }
             var index = Number(container.getAttribute('data-next-index'));
@@ -141,34 +161,39 @@ function ds_render_preparation_windows($option)
             });
             container.querySelector('[data-preparation-rows]').appendChild(row);
             container.setAttribute('data-next-index', index + 1);
+            container.closest('.ds-window-editor').querySelector('.ds-window-count').textContent = container.querySelectorAll('[data-preparation-rows] > [data-preparation-row]').length;
         });
         </script>
         <?php
         $script_rendered = true;
     }
     ?>
+    <details class="ds-window-editor" <?php if (count($windows)) echo 'open'; ?>>
+    <summary>Zeitfenster <span class="ds-window-count"><?php echo count($windows); ?></span></summary>
     <div data-preparation-windows data-next-index="<?php echo count($windows); ?>">
-        <p><?php echo esc_html__('Individuelle Bearbeitungszeiten (täglich)', 'dsmart'); ?></p>
-        <p><?php echo esc_html__('Außerhalb dieser Zeitfenster gilt die feste Bearbeitungszeit. Beginn inklusive, Ende exklusive. Bei Überschneidungen gilt das erste passende Zeitfenster. Die Bearbeitungszeit bestimmt die erste verfügbare Uhrzeit je Zeitfenster. Die gewählte Liefer- / Abholzeit bleibt unverändert. Zeiten gelten in Europe/Berlin; Zeitfenster über Mitternacht sind möglich.', 'dsmart'); ?></p>
+        <?php if ($interval) { ?><input type="hidden" name="<?php echo esc_attr($option . '_windows_present'); ?>" value="1"><?php } ?>
+        <p class="ds-settings-hint">Täglich gültig. Außerhalb gilt der Standardwert.</p>
+        <details class="ds-window-help"><summary>Hinweise</summary>        <p><?php echo esc_html__($interval ? 'Innerhalb der Zeitfenster werden die auswählbaren Uhrzeiten im angegebenen Abstand ab Beginn des Zeitfensters angeboten. Außerhalb gilt der feste Zeitabstand. Bei Überschneidungen gilt das erste passende Zeitfenster. Zeiten gelten in Europe/Berlin; Zeitfenster über Mitternacht sind möglich.' : 'Außerhalb dieser Zeitfenster gilt die feste Bearbeitungszeit. Beginn inklusive, Ende exklusive. Bei Überschneidungen gilt das erste passende Zeitfenster. Die Bearbeitungszeit bestimmt die erste verfügbare Uhrzeit je Zeitfenster. Die gewählte Liefer- / Abholzeit bleibt unverändert. Zeiten gelten in Europe/Berlin; Zeitfenster über Mitternacht sind möglich.', 'dsmart'); ?></p></details>
         <div data-preparation-rows>
         <?php foreach ($windows as $index => $window) {
-            ds_render_preparation_window_row($option, $index, $window);
+            ds_render_preparation_window_row($option, $index, $window, $interval);
         } ?>
         </div>
-        <template><?php ds_render_preparation_window_row($option, '__INDEX__', array('from' => '', 'to' => '', 'minutes' => '')); ?></template>
+        <template><?php ds_render_preparation_window_row($option, '__INDEX__', array('from' => '', 'to' => '', 'minutes' => ''), $interval); ?></template>
         <button type="button" class="button" data-preparation-add><?php echo esc_html__('Zeitfenster hinzufügen', 'dsmart'); ?></button>
     </div>
+    </details>
     <?php
 }
 
-function ds_render_preparation_window_row($option, $index, $window)
+function ds_render_preparation_window_row($option, $index, $window, $interval = false)
 {
     ?>
     <div data-preparation-row style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">
-    <?php foreach (array('from' => 'Von', 'to' => 'Bis', 'minutes' => 'Bearbeitungszeit (Minuten)') as $field => $label) {
+    <?php foreach (array('from' => 'Von', 'to' => 'Bis', 'minutes' => ($interval ? 'Zeitabstand (Minuten)' : 'Bearbeitungszeit (Minuten)')) as $field => $label) {
         $name = $option . '_windows[' . $index . '][' . $field . ']'; ?>
         <label><?php echo esc_html__($label, 'dsmart'); ?>
-            <input type="<?php echo $field === 'minutes' ? 'number' : 'time'; ?>" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($window[$field]); ?>" <?php echo $field === 'minutes' ? 'min="0" max="1440" step="1"' : ''; ?> required>
+            <input type="<?php echo $field === 'minutes' ? 'number' : 'time'; ?>" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($window[$field]); ?>" <?php echo $field === 'minutes' ? ($interval ? 'min="1" max="1440" step="1"' : 'min="0" max="1440" step="1"') : ''; ?> required>
         </label>
     <?php } ?>
         <button type="button" class="button" data-preparation-remove><?php echo esc_html__('Entfernen', 'dsmart'); ?></button>

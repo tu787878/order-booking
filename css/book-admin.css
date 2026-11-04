@@ -230,3 +230,45 @@ span.day-of-week{
 	width: 300px;
 	display: inline-block;
 }
+/* Delivery/pickup settings: compact groups, progressively disclosed details. */
+#tab-4.ds-delivery-settings { max-width: 1160px; }
+#tab-4 .ds-settings-panel { clear: both; margin: 0 0 12px; border: 1px solid #dcdcde; border-radius: 8px; background: #fff; }
+#tab-4 .ds-settings-panel > summary { padding: 16px 20px; cursor: pointer; font-size: 14px; font-weight: 600; color: #1d2327; }
+#tab-4 .ds-settings-panel[open] > summary { border-bottom: 1px solid #eee; }
+#tab-4 .ds-settings-panel-body { padding: 20px; display: flow-root; }
+#tab-4 .ds-settings-panel-body > h2:empty { display: none; }
+#tab-4 .ds-settings-panel-body h2 { font-size: 14px; margin: 16px 0 10px; }
+#tab-4 .ds-service-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; clear: both; }
+#tab-4 .ds-service-card { min-width: 0; padding: 16px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fafafa; display: flow-root; }
+#tab-4 .ds-service-card > h3 { margin: 0 0 18px; font-size: 15px; }
+#tab-4 .ds-service-card .form-group { float: none; width: auto; margin: 0 0 18px; }
+#tab-4 .ds-service-card h4 { margin: 0 0 8px; font-size: 13px; }
+#tab-4 .ds-service-card input[type=number] { width: 100px; }
+#tab-4 .ds-settings-hint { margin: 0 0 16px; color: #646970; font-size: 12px; }
+#tab-4 .ds-window-editor { margin-top: 10px; }
+#tab-4 .ds-window-editor > summary { cursor: pointer; font-size: 12px; color: #2271b1; padding: 4px 0; }
+#tab-4 .ds-window-count { display: inline-block; min-width: 18px; padding: 0 4px; border-radius: 10px; background: #e9eef3; color: #50575e; text-align: center; margin-left: 4px; }
+#tab-4 [data-preparation-windows] { padding-top: 10px; }
+#tab-4 [data-preparation-row] { display: grid !important; grid-template-columns: 1fr 1fr 1fr auto; align-items: end !important; gap: 8px !important; }
+#tab-4 [data-preparation-row] label { min-width: 0; font-size: 11px; line-height: 1.5; }
+#tab-4 [data-preparation-row] input { width: 100% !important; min-width: 0; margin: 3px 0 0; }
+#tab-4 [data-preparation-row] .button { padding: 0 7px; font-size: 11px; }
+#tab-4 .ds-window-help { margin-bottom: 12px; font-size: 12px; color: #646970; }
+#tab-4 .ds-window-help > summary { cursor: pointer; }
+#tab-4 .ds-window-help p { font-size: 12px; }
+#tab-4 .ds-service-card .timepicker-group > label { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-bottom: 8px; }
+#tab-4 .ds-service-card .timepicker-group span { margin: 0; }
+#tab-4 .ds-service-card .day-of-week { min-width: 85px; font-size: 12px; }
+#tab-4 .ds-service-card .timepicker { width: 90px; }
+#tab-4 .ds-settings-panel-body .table { width: 100%; }
+#tab-4 .ds-settings-panel-body .table-custom-date,
+#tab-4 .ds-settings-panel-body .table-custom-closed { overflow-x: auto; }
+#tab-4 summary:focus-visible { outline: 2px solid #2271b1; outline-offset: 2px; }
+@media (max-width: 1100px) {
+  #tab-4 .ds-service-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  #tab-4 .ds-settings-panel-body { padding: 12px; }
+  #tab-4 .ds-service-card { padding: 12px; }
+  #tab-4 [data-preparation-row] { grid-template-columns: 1fr 1fr !important; }
+}

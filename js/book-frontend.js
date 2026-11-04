@@ -1239,13 +1239,13 @@ jQuery(document).ready(function ($) {
     timeFormat: "H:i",
     useSelect: true,
     disableTimeRanges: bookingVars.close_time,
-    step: dsPreparationStep(bookingVars.close_time, bookingVars.takeaway_step),
+    step: dsPreparationStep(bookingVars.close_time, bookingVars.takeaway_step, bookingVars.takeaway_step_windows),
   });
   $(".select-wrap .timepicker2").timepicker({
     timeFormat: "H:i",
     useSelect: true,
     disableTimeRanges: bookingVars.close_time2,
-    step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step),
+    step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step, bookingVars.delivery_step_windows),
   });
   if ($(".select-wrap .timepicker2").size() > 0) {
     if (bookingVars.buynow == "1") {
@@ -1274,14 +1274,14 @@ jQuery(document).ready(function ($) {
         timeFormat: "H:i",
         useSelect: true,
         disableTimeRanges: bookingVars.close_time2,
-        step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step),
+        step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step, bookingVars.delivery_step_windows),
       });
     } else {
       $(".select-wrap .timepicker2").timepicker({
         timeFormat: "H:i",
         useSelect: true,
         disableTimeRanges: bookingVars.close_all[value],
-        step: dsPreparationStep(bookingVars.close_all[value], bookingVars.delivery_step),
+        step: dsPreparationStep(bookingVars.close_all[value], bookingVars.delivery_step, bookingVars.delivery_step_windows),
       });
     }
     //var time_value = $("select[name=ui-timepicker-delivery_time] option:not([disabled]):first").attr("value");
@@ -3126,16 +3126,28 @@ jQuery(function () {
     updateNavigation();
 });
 
-// Include exact preparation boundaries alongside the configured time grid.
-function dsPreparationStep(ranges, configuredStep) {
+// Build a daily time grid using custom intervals and exact preparation boundaries.
+function dsPreparationStep(ranges, configuredStep, windows) {
   var step = Math.max(1, parseInt(configuredStep, 10) || 15);
-  var points = [];
-  for (var minute = 0; minute < 1440; minute += step) points.push(minute);
+  var toMinute = function (clock) { var parts = clock.split(':'); return Number(parts[0]) * 60 + Number(parts[1]); };
+  var points = [0];
+  for (var minute = 1; minute < 1440; minute++) {
+    var spacing = step, anchor = 0;
+    (windows || []).some(function (window) {
+      var start = toMinute(window.from), end = toMinute(window.to);
+      var matches = start < end ? minute >= start && minute < end : minute >= start || minute < end;
+      if (matches) {
+        spacing = Math.max(1, Number(window.minutes) || step);
+        anchor = start > minute ? start - 1440 : start;
+      }
+      return matches;
+    });
+    if ((minute - anchor) % spacing === 0) points.push(minute);
+  }
   (ranges || []).forEach(function (range) {
-    var parts = range[1].split(':');
-    var end = Number(parts[0]) * 60 + Number(parts[1]);
+    var end = toMinute(range[1]);
     if (end > 0 && end < 1440) points.push(end);
   });
   points = points.filter(function (point, index, all) { return all.indexOf(point) === index; }).sort(function (a, b) { return a - b; });
-  return function (index) { return index > 0 && index < points.length ? points[index] - points[index - 1] : step; };
+  return function (index) { return index > 0 && index < points.length ? points[index] - points[index - 1] : 1440; };
 }
