@@ -1264,120 +1264,155 @@ function general_booking_setting()
 																				} ?>><span><?php _e('Keine neuen Bestellungen annehmen.'); ?></span></label>
 					<span><em><?php _e("Zum Fortsetzen den Haken entfernen.") ?></em></span>
 				</div>
+				<h2><?php _e("Popup Image ( Empfehlung: 1920x1080, 1280x720)"); ?></h2>
+				<div class="form-group">
+					<div class="ds-logo-img">
+						<?php $image_id = get_option('ds_popup');
+						if (intval($image_id) > 0) {
+							$image = wp_get_attachment_image($image_id, 'medium', false, array('id' => 'myprefix-preview-image-popup'));
+						} else {
+							$image = '<img id="myprefix-preview-image-popup" src="' . BOOKING_ORDER_PATH . '/img/no_img.jpg' . '" />';
+						}
+
+						echo $image; ?>
+					</div>
+					<input type="hidden" name="myprefix_image_id_popup" id="myprefix_image_id_popup" value="<?php echo esc_attr($image_id); ?>" class="regular-text" />
+					<input type='button' class="button-primary" value="<?php esc_attr_e('Bild aussuchen', 'dsmart'); ?>" id="myprefix_media_manager_popup"/>
+				</div>
+				<h2><?php _e("Show Popup HomePage? (Empfehlung: 1920x1080, 1280x720)"); ?></h2>
+				<div class="radio-wrap">
+					<label><input type="radio" name="homepage_popup" value="0" <?php if ($homepage_popup == "0") echo 'checked'; ?>>Aus</label>
+					<label><input type="radio" name="homepage_popup" value="1" <?php if ($homepage_popup == "1") echo 'checked'; ?>>An (Homepage)</label>
+					<label><input type="radio" name="homepage_popup" value="2" <?php if ($homepage_popup == "2") echo 'checked'; ?>>An (Bestellung)</label>
+				</div>
+				<h2><?php _e(""); ?></h2>
+				<div class="form-group">
+					<div class="ds-logo-img">
+						<?php $image_id_homepage = get_option('ds_popup_homepage');
+						if (intval($image_id_homepage) > 0) {
+							$image = wp_get_attachment_image($image_id_homepage, 'medium', false, array('id' => 'myprefix-preview-image-popup-homepage'));
+						} else {
+							$image = '<img id="myprefix-preview-image-popup-homepage" src="' . BOOKING_ORDER_PATH . '/img/no_img.jpg' . '" />';
+						}
+
+						echo $image; ?>
+					</div>
+					<input type="hidden" name="myprefix_image_id_popup_homepage" id="myprefix_image_id_popup_homepage" value="<?php echo esc_attr($image_id_homepage); ?>" class="regular-text" />
+					<input type='button' class="button-primary" value="<?php esc_attr_e('Bild aussuchen', 'dsmart'); ?>" id="myprefix_media_manager_popup_homepage"/>
+				</div>
 				</div></details>
-<details class="ds-settings-panel" open><summary>Bearbeitungszeit &amp; Zeitabstand</summary><div class="ds-settings-panel-body"><p class="ds-settings-hint">Standardwerte in Minuten. Abweichende Zeiten können Sie unter „Zeitfenster“ ergänzen.</p><div class="ds-service-grid"><section class="ds-service-card"><h3>Lieferung</h3><div id="delay_time_delivery" <?php if ($dsmart_method_ship !== "on") {echo 'style="display:none"';}?> class="form-group">
-					<h4><?php _e('Bearbeitungszeit') ?></h4>
-					<label><input type="number" name="delay_time" placeholder="<?php _e("Please enter your time which you want to delay(minutes)"); ?>" value="<?php echo $delay_time; ?>" /></label>
-					<?php ds_render_preparation_windows('delay_time'); ?>
-				</div>
-				<div id="time_delivery_step" <?php if ($dsmart_method_ship !== "on") {echo 'style="display:none"';}?> class="form-group">
-					<h4><?php _e('Zeitabstand') ?></h4>
-					<label><input type="number" name="dsmart_delivery_time_step" value="<?php echo $dsmart_delivery_time_step; ?>" /></label>
-					<?php ds_render_preparation_windows('dsmart_delivery_time_step', true); ?>
-				</div>
-				</section><section class="ds-service-card"><h3>Abholung</h3><div id="delay_time_in_shop" <?php if ($dsmart_method_direct !== "on") {echo 'style="display:none"';}?> class="form-group">
-					<h4><?php _e('Bearbeitungszeit') ?></h4>
-					<label><input type="number" name="delay_delivery" placeholder="<?php _e("Please enter your time which you want to delay(minutes)"); ?>" value="<?php echo $delay_delivery; ?>" /></label>
-					<?php ds_render_preparation_windows('delay_delivery'); ?>
-				</div>
-				<div id="time_takeaway_step" <?php if ($dsmart_method_direct !== "on") {echo 'style="display:none"';}?> class="form-group">
-					<h4><?php _e('Zeitabstand') ?></h4>
-					<label><input type="number" name="dsmart_takeaway_time_step" value="<?php echo $dsmart_takeaway_time_step; ?>" /></label>
-					<?php ds_render_preparation_windows('dsmart_takeaway_time_step', true); ?>
-				</div>
+<details class="ds-settings-panel" open><summary>Bearbeitungszeit &amp; Zeitabstand</summary><div class="ds-settings-panel-body"><p class="ds-settings-hint">Standardwerte gelten außerhalb der Sonderzeitfenster.</p><div class="ds-service-grid"><section class="ds-service-card" id="delivery_time_settings"><h3>Lieferung</h3>
+				<div class="ds-time-settings-section">	<h4>Standardwerte</h4><div class="ds-time-defaults">
+				<div id="delay_time_delivery" class="form-group"><label><?php _e('Bearbeitungszeit (Minuten)') ?><br><input type="number" name="delay_time" placeholder="<?php _e("Please enter your time which you want to delay(minutes)"); ?>" value="<?php echo $delay_time; ?>" /></label></div>
+				<div id="time_delivery_step" class="form-group"><label><?php _e('Zeitabstand (Minuten)') ?><br><input type="number" name="dsmart_delivery_time_step" value="<?php echo $dsmart_delivery_time_step; ?>" /></label></div>
+				</div></div>
+				<div class="ds-time-settings-section"><h4>Spezielle Zeitfenster</h4><div class="ds-time-special-grid">
+				<div class="ds-time-special-setting"><h5><?php _e('Bearbeitungszeit') ?></h5><?php ds_render_preparation_windows('delay_time'); ?></div>
+				<div class="ds-time-special-setting"><h5><?php _e('Zeitabstand') ?></h5><?php ds_render_preparation_windows('dsmart_delivery_time_step', true); ?></div>
+				</div></div>
+				</section><section class="ds-service-card" id="pickup_time_settings"><h3>Abholung</h3>
+				<div class="ds-time-settings-section"><h4>Standardwerte</h4><div class="ds-time-defaults">
+				<div id="delay_time_in_shop" class="form-group"><label><?php _e('Bearbeitungszeit (Minuten)') ?><br><input type="number" name="delay_delivery" placeholder="<?php _e("Please enter your time which you want to delay(minutes)"); ?>" value="<?php echo $delay_delivery; ?>" /></label></div>
+				<div id="time_takeaway_step" class="form-group"><label><?php _e('Zeitabstand (Minuten)') ?><br><input type="number" name="dsmart_takeaway_time_step" value="<?php echo $dsmart_takeaway_time_step; ?>" /></label></div>
+				</div></div>
+				<div class="ds-time-settings-section"><h4>Spezielle Zeitfenster</h4><div class="ds-time-special-grid">
+				<div class="ds-time-special-setting"><h5><?php _e('Bearbeitungszeit') ?></h5><?php ds_render_preparation_windows('delay_delivery'); ?></div>
+				<div class="ds-time-special-setting"><h5><?php _e('Zeitabstand') ?></h5><?php ds_render_preparation_windows('dsmart_takeaway_time_step', true); ?></div>
+				</div></div>
 				</section></div></div></details>
-<details class="ds-settings-panel"><summary>Wöchentliche Öffnungszeiten</summary><div class="ds-settings-panel-body"><div class="ds-service-grid"><section class="ds-service-card"><h3>Lieferung</h3><div id="opening_time_delivery" <?php if ($dsmart_method_ship !== "on") {echo 'style="display:none"';}?> class="form-group timepicker-group">
+<details class="ds-settings-panel"><summary>Wöchentliche Öffnungszeiten</summary><div class="ds-settings-panel-body"><div class="ds-service-grid"><section class="ds-service-card"><h3>Lieferung</h3><div id="opening_time_delivery" class="form-group timepicker-group">
 					<h4><?php _e('Öffnungszeiten Lieferung') ?></h4>
 					<label>
 						<span class="day-of-week"><?php _e("Montag:") ?></span>
 						<input type="text" name="time_open_shop_mo" id="time_open_shop_mo" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_mo; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_mo" id="time_close_shop_mo" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_mo; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Dienstag:") ?></span>
 						<input type="text" name="time_open_shop_tu" id="time_open_shop_tu" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_tu; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_tu" id="time_close_shop_tu" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_tu; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Mittwoch:") ?></span>
 						<input type="text" name="time_open_shop_we" id="time_open_shop_we" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_we; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_we" id="time_close_shop_we" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_we; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Donnerstag:") ?></span>
 						<input type="text" name="time_open_shop_th" id="time_open_shop_th" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_th; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_th" id="time_close_shop_th" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_th; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Freitag:") ?></span>
 						<input type="text" name="time_open_shop_fr" id="time_open_shop_fr" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_fr; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_fr" id="time_close_shop_fr" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_fr; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Samstag:") ?></span>
 						<input type="text" name="time_open_shop_sa" id="time_open_shop_sa" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_sa; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_sa" id="time_close_shop_sa" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_sa; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Sonntag:") ?></span>
 						<input type="text" name="time_open_shop_su" id="time_open_shop_su" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_su; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_su" id="time_close_shop_su" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_su; ?>" autocomplete="off" />
 					</label>
 				</div>
-				</section><section class="ds-service-card"><h3>Abholung</h3><div id="opening_time_in_shop" <?php if ($dsmart_method_direct !== "on") {echo 'style="display:none"';}?> class="form-group timepicker-group">
+				</section><section class="ds-service-card"><h3>Abholung</h3><div id="opening_time_in_shop" class="form-group timepicker-group">
 					<h4><?php _e('Öffnungszeiten Abholung') ?></h4>
 					<label>
 						<span class="day-of-week"><?php _e("Montag:") ?></span>
 						<input type="text" name="time_open_shop_2_mo" id="time_open_shop_2_mo" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_2_mo; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_2_mo" id="time_close_shop_2_mo" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_2_mo; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Dienstag:") ?></span>
 						<input type="text" name="time_open_shop_2_tu" id="time_open_shop_2_tu" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_2_tu; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_2_tu" id="time_close_shop_2_tu" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_2_tu; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Mittwoch:") ?></span>
 						<input type="text" name="time_open_shop_2_we" id="time_open_shop_2_we" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_2_we; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_2_we" id="time_close_shop_2_we" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_2_we; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Donnerstag:") ?></span>
 						<input type="text" name="time_open_shop_2_th" id="time_open_shop_2_th" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_2_th; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_2_th" id="time_close_shop_2_th" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_2_th; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Freitag:") ?></span>
 						<input type="text" name="time_open_shop_2_fr" id="time_open_shop_2_fr" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_2_fr; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_2_fr" id="time_close_shop_2_fr" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_2_fr; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Samstag:") ?></span>
 						<input type="text" name="time_open_shop_2_sa" id="time_open_shop_2_sa" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_2_sa; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_2_sa" id="time_close_shop_2_sa" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_2_sa; ?>" autocomplete="off" />
 					</label>
 					<label>
 						<span class="day-of-week"><?php _e("Sonntag:") ?></span>
 						<input type="text" name="time_open_shop_2_su" id="time_open_shop_2_su" class="widefat timepicker" placeholder="<?php _e('Öffnungszeit') ?>" value="<?php echo $time_open_shop_2_su; ?>" autocomplete="off" />
-						<span><?php _e("to") ?></span>
+						<span><?php _e("bis") ?></span>
 						<input type="text" name="time_close_shop_2_su" id="time_close_shop_2_su" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_2_su; ?>" autocomplete="off" />
 					</label>
 				</div>
 				</section></div></div></details>
-<details class="ds-settings-panel"><summary>Pausen &amp; Schließzeiten</summary><div class="ds-settings-panel-body"><div id="closing_time_delivery" <?php if ($dsmart_method_ship !== "on") {echo 'style="display:none"';}?> class="form-group timepicker-group table-custom-closed">
+
+<details class="ds-settings-panel"><summary>Pausen &amp; Schließzeiten</summary><div class="ds-settings-panel-body"><div class="ds-service-grid"><section class="ds-service-card"><div id="closing_time_delivery" class="form-group timepicker-group table-custom-closed">
 					<h4><?php _e('Schliesszeit Lieferung') ?></h4>
 					<table class="table">
 						<tbody>
@@ -1410,6 +1445,7 @@ function general_booking_setting()
 											</select>
 										</td>
 										<td><input type="text" name="closed_time_from_2[]" class="widefat timepicker" value="<?php echo $item['from'] ?>" autocomplete="off" required /></td>
+										<td class="closing-time-until"><?php _e('bis') ?></td>
 										<td><input type="text" name="closed_time_to_2[]" class="widefat timepicker" value="<?php echo $item['to'] ?>" autocomplete="off" required /></td>
 										<td><span class="button remove-row"><?php _e("Löschen") ?></span></td>
 									</tr>
@@ -1428,6 +1464,7 @@ function general_booking_setting()
 									</select>
 								</td>
 								<td><input type="text" name="closed_time_from_2[]" class="widefat timepicker" autocomplete="off" /></td>
+								<td class="closing-time-until"><?php _e('bis') ?></td>
 								<td><input type="text" name="closed_time_to_2[]" class="widefat timepicker" autocomplete="off" /></td>
 								<td><span class="button remove-row"><?php _e("Löschen") ?></span></td>
 							</tr>
@@ -1435,7 +1472,7 @@ function general_booking_setting()
 					</table>
 					<button type="button" class="button add-new-row"><?php _e("Neue Zeile hinzufugen") ?></button>
 				</div>
-				<div id="closing_time_in_shop" <?php if ($dsmart_method_direct !== "on") {echo 'style="display:none"';}?> class="form-group timepicker-group table-custom-closed">
+				</section><section class="ds-service-card"><div id="closing_time_in_shop" class="form-group timepicker-group table-custom-closed">
 					<h4><?php _e('Schliesszeit Abholung') ?></h4>
 					<table class="table">
 						<tbody>
@@ -1468,6 +1505,7 @@ function general_booking_setting()
 											</select>
 										</td>
 										<td><input type="text" name="closed_time_from[]" class="widefat timepicker" value="<?php echo $item['from'] ?>" autocomplete="off" required /></td>
+										<td class="closing-time-until"><?php _e('bis') ?></td>
 										<td><input type="text" name="closed_time_to[]" class="widefat timepicker" value="<?php echo $item['to'] ?>" autocomplete="off" required /></td>
 										<td><span class="button remove-row"><?php _e("Löschen") ?></span></td>
 									</tr>
@@ -1486,13 +1524,14 @@ function general_booking_setting()
 									</select>
 								</td>
 								<td><input type="text" name="closed_time_from[]" class="widefat timepicker" autocomplete="off" /></td>
+								<td class="closing-time-until"><?php _e('bis') ?></td>
 								<td><input type="text" name="closed_time_to[]" class="widefat timepicker" autocomplete="off" /></td>
 								<td><span class="button remove-row"><?php _e("Löschen") ?></span></td>
 							</tr>
 						</tbody>
 					</table>
 					<button type="button" class="button add-new-row"><?php _e("Neue Zeile hinzufugen") ?></button>
-				</div>
+				</div></section></div>
 				</div></details>
 <details class="ds-settings-panel"><summary>Abweichende Öffnungszeiten &amp; Feiertage</summary><div class="ds-settings-panel-body"><div class="form-group timepicker-group table-custom-date">
 					<h4><?php _e('Benutzerdefinierte Öffnungszeit') ?></h4>
@@ -1706,43 +1745,6 @@ function general_booking_setting()
 					<button type="button" class="button add-new-row2"><?php _e("Neue Zeile hinzufügen") ?></button>
 				</div>
 			</div></details>
-<details class="ds-settings-panel"><summary>Popups &amp; Bilder</summary><div class="ds-settings-panel-body"><h2><?php _e("Popup Image ( Empfehlung: 1920x1080, 1280x720)"); ?></h2>
-				<div class="form-group">
-					<div class="ds-logo-img">
-						<?php $image_id = get_option('ds_popup');
-						if (intval($image_id) > 0) {
-							$image = wp_get_attachment_image($image_id, 'medium', false, array('id' => 'myprefix-preview-image-popup'));
-						} else {
-							$image = '<img id="myprefix-preview-image-popup" src="' . BOOKING_ORDER_PATH . '/img/no_img.jpg' . '" />';
-						}
-
-						echo $image; ?>
-					</div>
-					<input type="hidden" name="myprefix_image_id_popup" id="myprefix_image_id_popup" value="<?php echo esc_attr($image_id); ?>" class="regular-text" />
-					<input type='button' class="button-primary" value="<?php esc_attr_e('Bild aussuchen', 'dsmart'); ?>" id="myprefix_media_manager_popup"/>
-				</div>
-				<h2><?php _e("Show Popup HomePage? (Empfehlung: 1920x1080, 1280x720)"); ?></h2>
-				<div class="radio-wrap">
-					<label><input type="radio" name="homepage_popup" value="0" <?php if ($homepage_popup == "0") echo 'checked'; ?>>Aus</label>
-					<label><input type="radio" name="homepage_popup" value="1" <?php if ($homepage_popup == "1") echo 'checked'; ?>>An (Homepage)</label>
-					<label><input type="radio" name="homepage_popup" value="2" <?php if ($homepage_popup == "2") echo 'checked'; ?>>An (Bestellung)</label>
-				</div>
-				<h2><?php _e(""); ?></h2>
-				<div class="form-group">
-					<div class="ds-logo-img">
-						<?php $image_id_homepage = get_option('ds_popup_homepage');
-						if (intval($image_id_homepage) > 0) {
-							$image = wp_get_attachment_image($image_id_homepage, 'medium', false, array('id' => 'myprefix-preview-image-popup-homepage'));
-						} else {
-							$image = '<img id="myprefix-preview-image-popup-homepage" src="' . BOOKING_ORDER_PATH . '/img/no_img.jpg' . '" />';
-						}
-
-						echo $image; ?>
-					</div>
-					<input type="hidden" name="myprefix_image_id_popup_homepage" id="myprefix_image_id_popup_homepage" value="<?php echo esc_attr($image_id_homepage); ?>" class="regular-text" />
-					<input type='button' class="button-primary" value="<?php esc_attr_e('Bild aussuchen', 'dsmart'); ?>" id="myprefix_media_manager_popup_homepage"/>
-				</div>
-				</div></details>
 <details class="ds-settings-panel"><summary>Druck &amp; Bestellbon</summary><div class="ds-settings-panel-body"><h2><?php _e("Pool Druckverteilung?"); ?></h2>
 					<div class="radio-wrap">
 						<label><input type="radio" name="enable_pool" value="0" <?php if ($enable_pool != "1") echo 'checked'; ?>>Aus</label>

@@ -1,5 +1,5 @@
 <?php
-/** Daily preparation-time overrides, shared by both settings screens and checkout. */
+/** Preparation-time overrides, shared by both settings screens and checkout. */
 function ds_sanitize_preparation_windows($rows)
 {
     $windows = array();
@@ -17,7 +17,12 @@ function ds_sanitize_preparation_windows($rows)
             !preg_match('/^[0-9]+$/D', (string) $row['minutes']) || (float) $row['minutes'] > 1440) {
             continue;
         }
-        $windows[] = array('from' => $row['from'], 'to' => $row['to'], 'minutes' => (int) $row['minutes']);
+        $window = array('from' => $row['from'], 'to' => $row['to'], 'minutes' => (int) $row['minutes']);
+        if (isset($row['day'])) {
+            if (!in_array($row['day'], array('all', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'), true)) continue;
+            $window['day'] = $row['day'];
+        }
+        $windows[] = $window;
     }
     return $windows;
 }
@@ -30,8 +35,11 @@ function ds_get_preparation_time($option, $timestamp = null)
         return $default;
     }
     $now = new DateTimeImmutable('@' . (int) $timestamp);
-    $clock = $now->setTimezone(new DateTimeZone('Europe/Berlin'))->format('H:i');
+    $now = $now->setTimezone(new DateTimeZone('Europe/Berlin'));
+    $clock = $now->format('H:i');
+    $day = strtolower($now->format('D'));
     foreach (ds_sanitize_preparation_windows(get_option($option . '_windows')) as $window) {
+        if (isset($window['day']) && $window['day'] !== 'all' && $window['day'] !== $day) continue;
         $matches = $window['from'] < $window['to']
             ? $clock >= $window['from'] && $clock < $window['to']
             : $clock >= $window['from'] || $clock < $window['to'];
@@ -50,6 +58,11 @@ function ds_preparation_closed_ranges($ranges, $option, $date, $now = null)
     $today = $now->format('d-m-Y') === $date;
     $current = (int) $now->format('H') * 60 + (int) $now->format('i');
     $windows = ds_sanitize_preparation_windows(get_option($option . '_windows'));
+    $selected_date = DateTimeImmutable::createFromFormat('!d-m-Y', $date, $zone);
+    $selected_day = $selected_date ? strtolower($selected_date->format('D')) : 'all';
+    $windows = array_values(array_filter($windows, function ($window) use ($selected_day) {
+        return !isset($window['day']) || $window['day'] === 'all' || $window['day'] === $selected_day;
+    }));
     $to_minute = function ($clock) {
         $parts = explode(':', $clock);
         return (int) $parts[0] * 60 + (int) $parts[1];
@@ -118,6 +131,7 @@ function ds_save_preparation_windows()
         return;
     }
     foreach (array('delay_time', 'delay_delivery') as $option) {
+        if (!isset($_POST[$option . '_windows_present'])) continue;
         $key = $option . '_windows';
         update_option($key, ds_sanitize_preparation_windows(isset($_POST[$key]) ? wp_unslash($_POST[$key]) : array()), 'yes');
     }
@@ -155,8 +169,8 @@ function ds_render_preparation_windows($option, $interval = false)
             }
             var index = Number(container.getAttribute('data-next-index'));
             var template = container.querySelector('template');
-            var row = template.content.cloneNode(true);
-            row.querySelectorAll('input').forEach(function (input) {
+            var row = template.content.querySelector('[data-preparation-row]').cloneNode(true);
+            row.querySelectorAll('input, select').forEach(function (input) {
                 input.name = input.getAttribute('data-name').replace('__INDEX__', index);
             });
             container.querySelector('[data-preparation-rows]').appendChild(row);
@@ -171,15 +185,17 @@ function ds_render_preparation_windows($option, $interval = false)
     <details class="ds-window-editor" <?php if (count($windows)) echo 'open'; ?>>
     <summary>Zeitfenster <span class="ds-window-count"><?php echo count($windows); ?></span></summary>
     <div data-preparation-windows data-next-index="<?php echo count($windows); ?>">
-        <?php if ($interval) { ?><input type="hidden" name="<?php echo esc_attr($option . '_windows_present'); ?>" value="1"><?php } ?>
-        <p class="ds-settings-hint">Täglich gültig. Außerhalb gilt der Standardwert.</p>
+        <input type="hidden" name="<?php echo esc_attr($option . '_windows_present'); ?>" value="1">
+        <p class="ds-settings-hint">Täglich oder für einen Wochentag gültig. Außerhalb gilt der Standardwert.</p>
         <details class="ds-window-help"><summary>Hinweise</summary>        <p><?php echo esc_html__($interval ? 'Innerhalb der Zeitfenster werden die auswählbaren Uhrzeiten im angegebenen Abstand ab Beginn des Zeitfensters angeboten. Außerhalb gilt der feste Zeitabstand. Bei Überschneidungen gilt das erste passende Zeitfenster. Zeiten gelten in Europe/Berlin; Zeitfenster über Mitternacht sind möglich.' : 'Außerhalb dieser Zeitfenster gilt die feste Bearbeitungszeit. Beginn inklusive, Ende exklusive. Bei Überschneidungen gilt das erste passende Zeitfenster. Die Bearbeitungszeit bestimmt die erste verfügbare Uhrzeit je Zeitfenster. Die gewählte Liefer- / Abholzeit bleibt unverändert. Zeiten gelten in Europe/Berlin; Zeitfenster über Mitternacht sind möglich.', 'dsmart'); ?></p></details>
-        <div data-preparation-rows>
+        <div class="ds-preparation-table-wrap"><table class="widefat striped ds-preparation-table">
+            <thead><tr><th><?php echo esc_html__('Tag', 'dsmart'); ?></th><th><?php echo esc_html__('Von', 'dsmart'); ?></th><th><?php echo esc_html__('Bis', 'dsmart'); ?></th><th><?php echo esc_html__($interval ? 'Zeitabstand (Minuten)' : 'Bearbeitungszeit (Minuten)', 'dsmart'); ?></th><th><?php echo esc_html__('Aktion', 'dsmart'); ?></th></tr></thead>
+            <tbody data-preparation-rows>
         <?php foreach ($windows as $index => $window) {
             ds_render_preparation_window_row($option, $index, $window, $interval);
         } ?>
-        </div>
-        <template><?php ds_render_preparation_window_row($option, '__INDEX__', array('from' => '', 'to' => '', 'minutes' => ''), $interval); ?></template>
+            </tbody></table></div>
+        <template><table><tbody><?php ds_render_preparation_window_row($option, '__INDEX__', array('day' => 'all', 'from' => '', 'to' => '', 'minutes' => ''), $interval); ?></tbody></table></template>
         <button type="button" class="button" data-preparation-add><?php echo esc_html__('Zeitfenster hinzufügen', 'dsmart'); ?></button>
     </div>
     </details>
@@ -189,14 +205,18 @@ function ds_render_preparation_windows($option, $interval = false)
 function ds_render_preparation_window_row($option, $index, $window, $interval = false)
 {
     ?>
-    <div data-preparation-row style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px">
+    <tr data-preparation-row>
+        <?php $name = $option . '_windows[' . $index . '][day]'; ?>
+        <td><select aria-label="<?php echo esc_attr__('Tag', 'dsmart'); ?>" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>">
+            <?php foreach (array('all' => 'Täglich', 'mon' => 'Montag', 'tue' => 'Dienstag', 'wed' => 'Mittwoch', 'thu' => 'Donnerstag', 'fri' => 'Freitag', 'sat' => 'Samstag', 'sun' => 'Sonntag') as $day => $label) { ?>
+                <option value="<?php echo esc_attr($day); ?>" <?php selected(isset($window['day']) ? $window['day'] : 'all', $day); ?>><?php echo esc_html__($label, 'dsmart'); ?></option>
+            <?php } ?>
+        </select></td>
     <?php foreach (array('from' => 'Von', 'to' => 'Bis', 'minutes' => ($interval ? 'Zeitabstand (Minuten)' : 'Bearbeitungszeit (Minuten)')) as $field => $label) {
         $name = $option . '_windows[' . $index . '][' . $field . ']'; ?>
-        <label><?php echo esc_html__($label, 'dsmart'); ?>
-            <input type="<?php echo $field === 'minutes' ? 'number' : 'time'; ?>" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($window[$field]); ?>" <?php echo $field === 'minutes' ? ($interval ? 'min="1" max="1440" step="1"' : 'min="0" max="1440" step="1"') : ''; ?> required>
-        </label>
+        <td><input aria-label="<?php echo esc_attr__($label, 'dsmart'); ?>" type="<?php echo $field === 'minutes' ? 'number' : 'time'; ?>" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($window[$field]); ?>" <?php echo $field === 'minutes' ? ($interval ? 'min="1" max="1440" step="1"' : 'min="0" max="1440" step="1"') : ''; ?> required></td>
     <?php } ?>
-        <button type="button" class="button" data-preparation-remove><?php echo esc_html__('Entfernen', 'dsmart'); ?></button>
-    </div>
+        <td><button type="button" class="button" data-preparation-remove><?php echo esc_html__('Entfernen', 'dsmart'); ?></button></td>
+    </tr>
     <?php
 }

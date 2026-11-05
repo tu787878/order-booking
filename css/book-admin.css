@@ -230,6 +230,29 @@ span.day-of-week{
 	width: 300px;
 	display: inline-block;
 }
+.list-shipping-fee-heading{
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	align-items: center;
+	gap: 6px;
+}
+.list-shipping-fee .fee-item{
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+	align-items: center;
+	gap: 6px;
+}
+.list-shipping-fee-heading .a1{
+	width: auto;
+	min-width: 0;
+	font-size: 12px;
+	line-height: 1.25;
+}
+.list-shipping-fee .fee-item input.widefat{
+	width: 100%;
+	min-width: 0;
+	box-sizing: border-box;
+}
 /* Delivery/pickup settings: compact groups, progressively disclosed details. */
 #tab-4.ds-delivery-settings { max-width: 1160px; }
 #tab-4 .ds-settings-panel { clear: both; margin: 0 0 12px; border: 1px solid #dcdcde; border-radius: 8px; background: #fff; }
@@ -244,15 +267,28 @@ span.day-of-week{
 #tab-4 .ds-service-card .form-group { float: none; width: auto; margin: 0 0 18px; }
 #tab-4 .ds-service-card h4 { margin: 0 0 8px; font-size: 13px; }
 #tab-4 .ds-service-card input[type=number] { width: 100px; }
+#tab-4 .ds-time-settings-section { margin-top: 16px; padding-top: 14px; border-top: 1px solid #e5e7eb; }
+#tab-4 .ds-time-settings-section > h4 { margin: 0 0 10px; font-size: 13px; }
+#tab-4 .ds-time-defaults { display: flex; flex-wrap: wrap; gap: 16px; }
+#tab-4 .ds-time-defaults .form-group { margin: 0; }
+#tab-4 .ds-time-defaults label { font-size: 12px; }
+#tab-4 .ds-time-special-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+#tab-4 .ds-time-special-setting { min-width: 0; }
+#tab-4 .ds-time-special-setting > h5 { margin: 0 0 6px; font-size: 12px; }
 #tab-4 .ds-settings-hint { margin: 0 0 16px; color: #646970; font-size: 12px; }
 #tab-4 .ds-window-editor { margin-top: 10px; }
 #tab-4 .ds-window-editor > summary { cursor: pointer; font-size: 12px; color: #2271b1; padding: 4px 0; }
 #tab-4 .ds-window-count { display: inline-block; min-width: 18px; padding: 0 4px; border-radius: 10px; background: #e9eef3; color: #50575e; text-align: center; margin-left: 4px; }
 #tab-4 [data-preparation-windows] { padding-top: 10px; }
-#tab-4 [data-preparation-row] { display: grid !important; grid-template-columns: 1fr 1fr 1fr auto; align-items: end !important; gap: 8px !important; }
-#tab-4 [data-preparation-row] label { min-width: 0; font-size: 11px; line-height: 1.5; }
-#tab-4 [data-preparation-row] input { width: 100% !important; min-width: 0; margin: 3px 0 0; }
-#tab-4 [data-preparation-row] .button { padding: 0 7px; font-size: 11px; }
+#tab-4 .ds-preparation-table-wrap { overflow-x: auto; }
+#tab-4 .ds-preparation-table { width: 100%; table-layout: fixed; border-collapse: collapse; }
+#tab-4 .ds-preparation-table th, #tab-4 .ds-preparation-table td { padding: 6px; vertical-align: middle; }
+#tab-4 .ds-preparation-table th:nth-child(1) { width: 18%; }
+#tab-4 .ds-preparation-table th:nth-child(2), #tab-4 .ds-preparation-table th:nth-child(3) { width: 15%; }
+#tab-4 .ds-preparation-table th:nth-child(4) { width: 30%; }
+#tab-4 .ds-preparation-table th:nth-child(5) { width: 22%; }
+#tab-4 .ds-preparation-table input, #tab-4 .ds-preparation-table select { width: 100%; min-width: 0; box-sizing: border-box; }
+#tab-4 .ds-preparation-table .button { padding: 0 7px; font-size: 11px; }
 #tab-4 .ds-window-help { margin-bottom: 12px; font-size: 12px; color: #646970; }
 #tab-4 .ds-window-help > summary { cursor: pointer; }
 #tab-4 .ds-window-help p { font-size: 12px; }
@@ -260,6 +296,15 @@ span.day-of-week{
 #tab-4 .ds-service-card .timepicker-group span { margin: 0; }
 #tab-4 .ds-service-card .day-of-week { min-width: 85px; font-size: 12px; }
 #tab-4 .ds-service-card .timepicker { width: 90px; }
+#tab-4 .table-custom-closed .table { table-layout: fixed; }
+#tab-4 .table-custom-closed .table td { padding: 5px; vertical-align: middle; }
+#tab-4 .table-custom-closed .table td:nth-child(1) { width: 26%; }
+#tab-4 .table-custom-closed .table td:nth-child(2),
+#tab-4 .table-custom-closed .table td:nth-child(4) { width: 25%; }
+#tab-4 .table-custom-closed .table td.closing-time-until { width: 6%; text-align: center; white-space: nowrap; }
+#tab-4 .table-custom-closed .table td:last-child { width: 18%; }
+#tab-4 .table-custom-closed .timepicker { width: 100px !important; max-width: 100%; min-width: 0; }
+#tab-4 #closing_time_delivery, #tab-4 #closing_time_in_shop { margin: 0; }
 #tab-4 .ds-settings-panel-body .table { width: 100%; }
 #tab-4 .ds-settings-panel-body .table-custom-date,
 #tab-4 .ds-settings-panel-body .table-custom-closed { overflow-x: auto; }
@@ -270,5 +315,5 @@ span.day-of-week{
 @media (max-width: 600px) {
   #tab-4 .ds-settings-panel-body { padding: 12px; }
   #tab-4 .ds-service-card { padding: 12px; }
-  #tab-4 [data-preparation-row] { grid-template-columns: 1fr 1fr !important; }
+  #tab-4 .ds-time-special-grid { grid-template-columns: 1fr; }
 }

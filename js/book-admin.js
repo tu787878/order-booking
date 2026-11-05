@@ -41,43 +41,26 @@ jQuery(document).ready(function($){
 		}
 	});
 
-	// for opening time delevery and in shop
-	$(document).on('change', 'input[name="dsmart_method_ship"]', function(e) {
-		//e.preventDefault();
-		if(this.checked){
-			$("#opening_time_delivery").show();
-			$("#closing_time_delivery").show();
-			$("#delay_time_delivery").show();
-			$("#time_delivery_step").show();
-			console.log("on");
-		}else{
-			$("#opening_time_delivery").hide();
-			$("#closing_time_delivery").hide();
-			$("#delay_time_delivery").hide();
-			$("#time_delivery_step").hide();
-			console.log("off");
-		}
-		
-	  });
+	// Keep delivery and pickup settings visible, but disable them when the service is off.
+	const serviceSettings = {
+		delivery: ["#opening_time_delivery", "#closing_time_delivery", "#delivery_time_settings"],
+		pickup: ["#opening_time_in_shop", "#closing_time_in_shop", "#pickup_time_settings"]
+	};
+	const setServiceSettingsDisabled = (selectors, disabled) => {
+		$(selectors.join(",")).find("input, select, textarea, button").prop("disabled", disabled);
+	};
+	const updateServiceSettings = () => {
+		setServiceSettingsDisabled(serviceSettings.delivery, !$('input[name="dsmart_method_ship"]').prop("checked"));
+		setServiceSettingsDisabled(serviceSettings.pickup, !$('input[name="dsmart_method_direct"]').prop("checked"));
+	};
+	$(document).on("change", 'input[name="dsmart_method_ship"], input[name="dsmart_method_direct"]', updateServiceSettings);
+	updateServiceSettings();
 
-	  	// for opening time takeway and in shop
-	$(document).on('change', 'input[name="dsmart_method_direct"]', function(e) {
-		//e.preventDefault();
-		if(this.checked){
-			$("#opening_time_in_shop").show();
-			$("#closing_time_in_shop").show();
-			$("#delay_time_in_shop").show();
-			$("#time_takeaway_step").show();
-			console.log("on");
-		}else{
-			$("#opening_time_in_shop").hide();
-			$("#closing_time_in_shop").hide();
-			$("#delay_time_in_shop").hide();
-			$("#time_takeaway_step").hide();
-			console.log("off");
-		}
-		
-	  });
+	// Disabled controls are omitted from POST; enable them during submit to preserve saved values.
+	$("form.dsmart-form").on("submit", function() {
+		setServiceSettingsDisabled(serviceSettings.delivery, false);
+		setServiceSettingsDisabled(serviceSettings.pickup, false);
+	});
 
 	  // rabatt on/off
 	  $(document).on('change', 'input[name="discount_cod"]', function(e) {

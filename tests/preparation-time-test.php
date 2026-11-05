@@ -20,7 +20,7 @@ $windows = array(
     array('from' => '12:00', 'to' => '14:00', 'minutes' => '20'),
     array('from' => '18:00', 'to' => '19:00', 'minutes' => '35'),
 );
-$_POST = array('ds_preparation_nonce' => 'invalid', 'delay_time_windows' => $windows);
+$_POST = array('ds_preparation_nonce' => 'invalid', 'delay_time_windows_present' => 1, 'delay_time_windows' => $windows);
 ds_save_preparation_windows();
 expect_same(false, get_option('delay_time_windows'), 'Invalid nonce does not save');
 $_POST['ds_preparation_nonce'] = 'valid';
@@ -48,11 +48,14 @@ expect_same(array(), ds_sanitize_preparation_windows(array(
     array('from' => array(), 'to' => '14:00', 'minutes' => 20),
     'invalid',
 )), 'Malformed rows are ignored');
-$_POST = array('ds_preparation_nonce' => 'valid');
+$_POST = array('ds_preparation_nonce' => 'valid', 'delay_time_windows_present' => 1, 'delay_delivery_windows_present' => 1);
 ds_save_preparation_windows();
 expect_same(array(), get_option('delay_time_windows'), 'Remove all delivery windows');
 expect_same(array(), get_option('delay_delivery_windows'), 'Remove all pickup windows');
 expect_same('45', at_clock('12:30'), 'Removing windows restores default');
+$GLOBALS['options']['delay_time_windows'] = array(array('day' => 'mon', 'from' => '12:00', 'to' => '14:00', 'minutes' => 25));
+expect_same(25, at_clock('12:30', 'delay_time', '2026-10-26'), 'Weekday window applies on Monday');
+expect_same('45', at_clock('12:30', 'delay_time', '2026-10-27'), 'Weekday window does not apply Tuesday');
 $GLOBALS['options']['delay_time_windows'] = $windows;
 expect_same('45', ds_get_preparation_time('delay_time'), 'No implicit current-clock window lookup');
 function slot_blocked($ranges, $clock) {

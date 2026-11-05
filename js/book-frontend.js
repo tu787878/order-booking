@@ -1239,13 +1239,13 @@ jQuery(document).ready(function ($) {
     timeFormat: "H:i",
     useSelect: true,
     disableTimeRanges: bookingVars.close_time,
-    step: dsPreparationStep(bookingVars.close_time, bookingVars.takeaway_step, bookingVars.takeaway_step_windows),
+    step: dsPreparationStep(bookingVars.close_time, bookingVars.takeaway_step, bookingVars.takeaway_step_windows, dsSelectedBookingDay()),
   });
   $(".select-wrap .timepicker2").timepicker({
     timeFormat: "H:i",
     useSelect: true,
     disableTimeRanges: bookingVars.close_time2,
-    step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step, bookingVars.delivery_step_windows),
+    step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step, bookingVars.delivery_step_windows, dsSelectedBookingDay()),
   });
   if ($(".select-wrap .timepicker2").size() > 0) {
     if (bookingVars.buynow == "1") {
@@ -1274,14 +1274,14 @@ jQuery(document).ready(function ($) {
         timeFormat: "H:i",
         useSelect: true,
         disableTimeRanges: bookingVars.close_time2,
-        step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step, bookingVars.delivery_step_windows),
+        step: dsPreparationStep(bookingVars.close_time2, bookingVars.delivery_step, bookingVars.delivery_step_windows, dsSelectedBookingDay(jsDate)),
       });
     } else {
       $(".select-wrap .timepicker2").timepicker({
         timeFormat: "H:i",
         useSelect: true,
         disableTimeRanges: bookingVars.close_all[value],
-        step: dsPreparationStep(bookingVars.close_all[value], bookingVars.delivery_step, bookingVars.delivery_step_windows),
+        step: dsPreparationStep(bookingVars.close_all[value], bookingVars.delivery_step, bookingVars.delivery_step_windows, dsSelectedBookingDay(jsDate)),
       });
     }
     //var time_value = $("select[name=ui-timepicker-delivery_time] option:not([disabled]):first").attr("value");
@@ -3127,13 +3127,26 @@ jQuery(function () {
 });
 
 // Build a daily time grid using custom intervals and exact preparation boundaries.
-function dsPreparationStep(ranges, configuredStep, windows) {
+function dsSelectedBookingDay(date) {
+  if (!date) {
+    var dateInput = jQuery(".select-wrap .ds-datepicker").first();
+    if (dateInput.length && typeof dateInput.datepicker === "function") {
+      date = dateInput.datepicker("getDate");
+    }
+  }
+  date = date || new Date();
+  return ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][date.getDay()];
+}
+
+function dsPreparationStep(ranges, configuredStep, windows, selectedDay) {
+  selectedDay = selectedDay || dsSelectedBookingDay();
   var step = Math.max(1, parseInt(configuredStep, 10) || 15);
   var toMinute = function (clock) { var parts = clock.split(':'); return Number(parts[0]) * 60 + Number(parts[1]); };
   var points = [0];
   for (var minute = 1; minute < 1440; minute++) {
     var spacing = step, anchor = 0;
     (windows || []).some(function (window) {
+      if (window.day && window.day !== "all" && window.day !== selectedDay) return false;
       var start = toMinute(window.from), end = toMinute(window.to);
       var matches = start < end ? minute >= start && minute < end : minute >= start || minute < end;
       if (matches) {
