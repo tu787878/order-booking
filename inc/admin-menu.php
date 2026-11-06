@@ -1318,7 +1318,7 @@ function general_booking_setting()
 				<div class="ds-time-special-setting"><?php ds_render_service_preparation_windows('pickup'); ?></div>
 				</div></div>
 				</section></div></div></details>
-<details class="ds-settings-panel"><summary>Wöchentliche Öffnungszeiten</summary><div class="ds-settings-panel-body"><div class="ds-service-grid"><section class="ds-service-card"><h3>Lieferung</h3><div id="opening_time_delivery" class="form-group timepicker-group">
+<details class="ds-settings-panel"><summary>Wöchentliche Öffnungszeiten</summary><div class="ds-settings-panel-body"><div class="ds-service-grid"><section class="ds-service-card" id="delivery_opening_settings"><h3>Lieferung</h3><div id="opening_time_delivery" class="form-group timepicker-group">
 					<h4><?php _e('Öffnungszeiten Lieferung') ?></h4>
 					<label>
 						<span class="day-of-week"><?php _e("Montag:") ?></span>
@@ -1363,7 +1363,7 @@ function general_booking_setting()
 						<input type="text" name="time_close_shop_su" id="time_close_shop_su" class="widefat timepicker" placeholder="<?php _e('Schliesszeit') ?>" value="<?php echo $time_close_shop_su; ?>" autocomplete="off" />
 					</label>
 				</div>
-				</section><section class="ds-service-card"><h3>Abholung</h3><div id="opening_time_in_shop" class="form-group timepicker-group">
+				</section><section class="ds-service-card" id="pickup_opening_settings"><h3>Abholung</h3><div id="opening_time_in_shop" class="form-group timepicker-group">
 					<h4><?php _e('Öffnungszeiten Abholung') ?></h4>
 					<label>
 						<span class="day-of-week"><?php _e("Montag:") ?></span>
@@ -1410,7 +1410,7 @@ function general_booking_setting()
 				</div>
 				</section></div></div></details>
 
-<details class="ds-settings-panel"><summary>Pausen &amp; Schließzeiten</summary><div class="ds-settings-panel-body"><div class="ds-service-grid"><section class="ds-service-card"><div id="closing_time_delivery" class="form-group timepicker-group table-custom-closed">
+<details class="ds-settings-panel"><summary>Pausen &amp; Schließzeiten</summary><div class="ds-settings-panel-body"><div class="ds-service-grid"><section class="ds-service-card" id="delivery_closing_settings"><div id="closing_time_delivery" class="form-group timepicker-group table-custom-closed">
 					<h4><?php _e('Schliesszeit Lieferung') ?></h4>
 					<table class="table">
 						<tbody>
@@ -1470,7 +1470,7 @@ function general_booking_setting()
 					</table>
 					<button type="button" class="button add-new-row"><?php _e("Neue Zeile hinzufugen") ?></button>
 				</div>
-				</section><section class="ds-service-card"><div id="closing_time_in_shop" class="form-group timepicker-group table-custom-closed">
+				</section><section class="ds-service-card" id="pickup_closing_settings"><div id="closing_time_in_shop" class="form-group timepicker-group table-custom-closed">
 					<h4><?php _e('Schliesszeit Abholung') ?></h4>
 					<table class="table">
 						<tbody>

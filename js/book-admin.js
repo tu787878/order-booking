@@ -43,11 +43,13 @@ jQuery(document).ready(function($){
 
 	// Keep delivery and pickup settings visible, but disable them when the service is off.
 	const serviceSettings = {
-		delivery: ["#opening_time_delivery", "#closing_time_delivery", "#delivery_time_settings"],
-		pickup: ["#opening_time_in_shop", "#closing_time_in_shop", "#pickup_time_settings"]
+		delivery: ["#delivery_time_settings", "#delivery_opening_settings", "#delivery_closing_settings"],
+		pickup: ["#pickup_time_settings", "#pickup_opening_settings", "#pickup_closing_settings"]
 	};
 	const setServiceSettingsDisabled = (selectors, disabled) => {
-		$(selectors.join(",")).find("input, select, textarea, button").prop("disabled", disabled);
+		const $sections = $(selectors.join(","));
+		$sections.toggleClass("ds-service-disabled", disabled).attr("aria-disabled", disabled ? "true" : "false");
+		$sections.find("input, select, textarea, button").prop("disabled", disabled);
 	};
 	const updateServiceSettings = () => {
 		setServiceSettingsDisabled(serviceSettings.delivery, !$('input[name="dsmart_method_ship"]').prop("checked"));
