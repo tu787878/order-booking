@@ -1307,8 +1307,7 @@ function general_booking_setting()
 				<div id="time_delivery_step" class="form-group"><label><?php _e('Zeitabstand (Minuten)') ?><br><input type="number" name="dsmart_delivery_time_step" value="<?php echo $dsmart_delivery_time_step; ?>" /></label></div>
 				</div></div>
 				<div class="ds-time-settings-section"><h4>Spezielle Zeitfenster</h4><div class="ds-time-special-grid">
-				<div class="ds-time-special-setting"><h5><?php _e('Bearbeitungszeit') ?></h5><?php ds_render_preparation_windows('delay_time'); ?></div>
-				<div class="ds-time-special-setting"><h5><?php _e('Zeitabstand') ?></h5><?php ds_render_preparation_windows('dsmart_delivery_time_step', true); ?></div>
+				<div class="ds-time-special-setting"><?php ds_render_service_preparation_windows('delivery'); ?></div>
 				</div></div>
 				</section><section class="ds-service-card" id="pickup_time_settings"><h3>Abholung</h3>
 				<div class="ds-time-settings-section"><h4>Standardwerte</h4><div class="ds-time-defaults">
@@ -1316,8 +1315,7 @@ function general_booking_setting()
 				<div id="time_takeaway_step" class="form-group"><label><?php _e('Zeitabstand (Minuten)') ?><br><input type="number" name="dsmart_takeaway_time_step" value="<?php echo $dsmart_takeaway_time_step; ?>" /></label></div>
 				</div></div>
 				<div class="ds-time-settings-section"><h4>Spezielle Zeitfenster</h4><div class="ds-time-special-grid">
-				<div class="ds-time-special-setting"><h5><?php _e('Bearbeitungszeit') ?></h5><?php ds_render_preparation_windows('delay_delivery'); ?></div>
-				<div class="ds-time-special-setting"><h5><?php _e('Zeitabstand') ?></h5><?php ds_render_preparation_windows('dsmart_takeaway_time_step', true); ?></div>
+				<div class="ds-time-special-setting"><?php ds_render_service_preparation_windows('pickup'); ?></div>
 				</div></div>
 				</section></div></div></details>
 <details class="ds-settings-panel"><summary>Wöchentliche Öffnungszeiten</summary><div class="ds-settings-panel-body"><div class="ds-service-grid"><section class="ds-service-card"><h3>Lieferung</h3><div id="opening_time_delivery" class="form-group timepicker-group">

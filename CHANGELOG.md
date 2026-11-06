@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.19
+- Merged preparation-time and time-interval overrides into one table per service; blank value cells leave that setting at its standard value.
+
 ## 1.8.18
 - Moved popup settings into Bestellannahme; grouped standard values and weekday-specific time windows; disabled delivery and pickup settings when the service is off; arranged time settings and closing times side by side with compact tables and German “bis” labels.
 

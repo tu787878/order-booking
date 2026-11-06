@@ -124,6 +124,58 @@ function ds_sanitize_interval_windows($rows)
     }));
 }
 
+function ds_sanitize_service_preparation_windows($rows)
+{
+    $windows = array();
+    if (!is_array($rows)) return $windows;
+    $valid_days = array('all', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun');
+    foreach ($rows as $row) {
+        if (!is_array($row) || !isset($row['day'], $row['from'], $row['to']) ||
+            !is_string($row['day']) || !in_array($row['day'], $valid_days, true) ||
+            !is_string($row['from']) || !is_string($row['to']) ||
+            !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $row['from']) ||
+            !preg_match('/^(?:[01][0-9]|2[0-3]):[0-5][0-9]$/D', $row['to']) || $row['from'] === $row['to']) {
+            continue;
+        }
+        $prep = isset($row['preparation_minutes']) ? trim((string) $row['preparation_minutes']) : '';
+        $interval = isset($row['interval_minutes']) ? trim((string) $row['interval_minutes']) : '';
+        if (($prep !== '' && (!preg_match('/^[0-9]+$/D', $prep) || (int) $prep > 1440)) ||
+            ($interval !== '' && (!preg_match('/^[0-9]+$/D', $interval) || (int) $interval < 1 || (int) $interval > 1440)) ||
+            ($prep === '' && $interval === '')) {
+            continue;
+        }
+        $windows[] = array(
+            'day' => $row['day'],
+            'from' => $row['from'],
+            'to' => $row['to'],
+            'preparation_minutes' => $prep === '' ? '' : (int) $prep,
+            'interval_minutes' => $interval === '' ? '' : (int) $interval,
+        );
+    }
+    return $windows;
+}
+
+function ds_merge_service_preparation_windows($preparation_windows, $interval_windows)
+{
+    $merged = array();
+    $indexes = array();
+    foreach (array('preparation' => $preparation_windows, 'interval' => $interval_windows) as $type => $windows) {
+        foreach ((array) $windows as $window) {
+            $day = isset($window['day']) ? $window['day'] : 'all';
+            $key = $day . '|' . $window['from'] . '|' . $window['to'];
+            if (!isset($indexes[$key])) {
+                $indexes[$key] = count($merged);
+                $merged[] = array('day' => $day, 'from' => $window['from'], 'to' => $window['to'], 'preparation_minutes' => '', 'interval_minutes' => '');
+            }
+            $field = $type === 'preparation' ? 'preparation_minutes' : 'interval_minutes';
+            if ($merged[$indexes[$key]][$field] === '') {
+                $merged[$indexes[$key]][$field] = $window['minutes'];
+            }
+        }
+    }
+    return $merged;
+}
+
 function ds_save_preparation_windows()
 {
     if (!isset($_POST['ds_preparation_nonce']) || !is_string($_POST['ds_preparation_nonce']) ||
@@ -140,6 +192,117 @@ function ds_save_preparation_windows()
         $key = $option . '_windows';
         update_option($key, ds_sanitize_interval_windows(isset($_POST[$key]) ? wp_unslash($_POST[$key]) : array()), 'yes');
     }
+    if (isset($_POST['ds_service_windows_present']) && is_array($_POST['ds_service_windows_present'])) {
+        $services = array(
+            'delivery' => array('delay_time', 'dsmart_delivery_time_step'),
+            'pickup' => array('delay_delivery', 'dsmart_takeaway_time_step'),
+        );
+        foreach ($services as $service => $options) {
+            if (empty($_POST['ds_service_windows_present'][$service])) continue;
+            $posted = isset($_POST['ds_service_windows'][$service]) ? wp_unslash($_POST['ds_service_windows'][$service]) : array();
+            $rows = ds_sanitize_service_preparation_windows($posted);
+            $preparation = array();
+            $intervals = array();
+            foreach ($rows as $row) {
+                if ($row['preparation_minutes'] !== '') {
+                    $preparation[] = array('day' => $row['day'], 'from' => $row['from'], 'to' => $row['to'], 'minutes' => (string) $row['preparation_minutes']);
+                }
+                if ($row['interval_minutes'] !== '') {
+                    $intervals[] = array('day' => $row['day'], 'from' => $row['from'], 'to' => $row['to'], 'minutes' => (string) $row['interval_minutes']);
+                }
+            }
+            update_option($options[0] . '_windows', ds_sanitize_preparation_windows($preparation), 'yes');
+            update_option($options[1] . '_windows', ds_sanitize_interval_windows($intervals), 'yes');
+        }
+    }
+}
+
+function ds_render_service_preparation_windows($service)
+{
+    static $script_rendered = false;
+    $services = array(
+        'delivery' => array('delay_time', 'dsmart_delivery_time_step'),
+        'pickup' => array('delay_delivery', 'dsmart_takeaway_time_step'),
+    );
+    if (!isset($services[$service])) return;
+    list($preparation_option, $interval_option) = $services[$service];
+    $windows = ds_merge_service_preparation_windows(
+        ds_sanitize_preparation_windows(get_option($preparation_option . '_windows')),
+        ds_sanitize_interval_windows(get_option($interval_option . '_windows'))
+    );
+    if (!$script_rendered) {
+        wp_nonce_field('ds_preparation_windows', 'ds_preparation_nonce');
+        ?>
+        <script>
+        document.addEventListener('invalid', function (event) {
+            var parent = event.target.parentElement;
+            while (parent) {
+                if (parent.tagName === 'DETAILS') parent.open = true;
+                parent = parent.parentElement;
+            }
+        }, true);
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('[data-preparation-add], [data-preparation-remove]');
+            if (!button) return;
+            var container = button.closest('[data-preparation-windows]');
+            if (!container) return;
+            if (button.hasAttribute('data-preparation-remove')) {
+                button.closest('[data-preparation-row]').remove();
+            } else {
+                var index = Number(container.getAttribute('data-next-index'));
+                var template = container.querySelector('template');
+                var row = template.content.querySelector('[data-preparation-row]').cloneNode(true);
+                row.querySelectorAll('input, select').forEach(function (input) {
+                    input.name = input.getAttribute('data-name').replace('__INDEX__', index);
+                });
+                container.querySelector('[data-preparation-rows]').appendChild(row);
+                container.setAttribute('data-next-index', index + 1);
+            }
+            container.closest('.ds-window-editor').querySelector('.ds-window-count').textContent = container.querySelectorAll('[data-preparation-rows] > [data-preparation-row]').length;
+        });
+        </script>
+        <?php
+        $script_rendered = true;
+    }
+    ?>
+    <details class="ds-window-editor" <?php if (count($windows)) echo 'open'; ?>>
+        <summary>Zeitfenster <span class="ds-window-count"><?php echo count($windows); ?></span></summary>
+        <div data-preparation-windows data-next-index="<?php echo count($windows); ?>">
+            <input type="hidden" name="ds_service_windows_present[<?php echo esc_attr($service); ?>]" value="1">
+            <p class="ds-settings-hint">Leere Werte werden nicht überschrieben; außerhalb des Zeitfensters gilt der Standardwert.</p>
+            <details class="ds-window-help"><summary>Hinweise</summary><p>Beginn inklusive, Ende exklusive. Zeitfenster können über Mitternacht gehen. Zeiten gelten in Europe/Berlin; bei Überschneidungen gilt der erste passende Eintrag.</p></details>
+            <div class="ds-preparation-table-wrap"><table class="widefat striped ds-preparation-table ds-service-preparation-table">
+                <thead><tr><th>Tag</th><th>Von</th><th>Bis</th><th>Bearbeitungszeit<br>(Minuten)</th><th>Zeitabstand<br>(Minuten)</th><th>Aktion</th></tr></thead>
+                <tbody data-preparation-rows>
+                <?php foreach ($windows as $index => $window) ds_render_service_preparation_window_row($service, $index, $window); ?>
+                </tbody>
+            </table></div>
+            <template><table><tbody><?php ds_render_service_preparation_window_row($service, '__INDEX__', array('day' => 'all', 'from' => '', 'to' => '', 'preparation_minutes' => '', 'interval_minutes' => '')); ?></tbody></table></template>
+            <button type="button" class="button" data-preparation-add>Zeitfenster hinzufügen</button>
+        </div>
+    </details>
+    <?php
+}
+
+function ds_render_service_preparation_window_row($service, $index, $window)
+{
+    ?>
+    <tr data-preparation-row>
+        <?php $base = 'ds_service_windows[' . $service . '][' . $index . ']'; ?>
+        <td><select aria-label="Tag" name="<?php echo esc_attr($base . '[day]'); ?>" data-name="<?php echo esc_attr($base . '[day]'); ?>">
+            <?php foreach (array('all' => 'Täglich', 'mon' => 'Montag', 'tue' => 'Dienstag', 'wed' => 'Mittwoch', 'thu' => 'Donnerstag', 'fri' => 'Freitag', 'sat' => 'Samstag', 'sun' => 'Sonntag') as $day => $label) { ?>
+                <option value="<?php echo esc_attr($day); ?>" <?php selected(isset($window['day']) ? $window['day'] : 'all', $day); ?>><?php echo esc_html__($label, 'dsmart'); ?></option>
+            <?php } ?>
+        </select></td>
+        <?php foreach (array('from' => 'Von', 'to' => 'Bis') as $field => $label) { $name = $base . '[' . $field . ']'; ?>
+            <td><input aria-label="<?php echo esc_attr__($label, 'dsmart'); ?>" type="time" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($window[$field]); ?>"></td>
+        <?php } ?>
+        <?php foreach (array('preparation_minutes' => 'Bearbeitungszeit (Minuten)', 'interval_minutes' => 'Zeitabstand (Minuten)') as $field => $label) { $name = $base . '[' . $field . ']'; ?>
+            <td><input aria-label="<?php echo esc_attr__($label, 'dsmart'); ?>" type="number" min="<?php echo $field === 'interval_minutes' ? '1' : '0'; ?>" max="1440" step="1" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr(isset($window[$field]) ? $window[$field] : ''); ?>"></td>
+        <?php } ?>
+        <td><button type="button" class="button" data-preparation-remove>Entfernen</button></td>
+    </tr>
+    <?php
 }
 
 function ds_render_preparation_windows($option, $interval = false)

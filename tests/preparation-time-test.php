@@ -93,4 +93,21 @@ expect_same(20, get_option('dsmart_delivery_time_step_windows')[0]['minutes'], '
 $_POST = array('ds_preparation_nonce'=>'valid', 'dsmart_delivery_time_step_windows_present'=>1);
 ds_save_preparation_windows();
 expect_same(array(), get_option('dsmart_delivery_time_step_windows'), 'Remove all interval windows');
+$merged = ds_merge_service_preparation_windows(
+    array(array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'minutes' => 35)),
+    array(array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'minutes' => 20))
+);
+expect_same(array(array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'preparation_minutes' => 35, 'interval_minutes' => 20)), $merged, 'Matching windows merge into one row');
+$_POST = array(
+    'ds_preparation_nonce' => 'valid',
+    'ds_service_windows_present' => array('delivery' => 1),
+    'ds_service_windows' => array('delivery' => array(
+        array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'preparation_minutes' => '35', 'interval_minutes' => ''),
+        array('day' => 'mon', 'from' => '13:00', 'to' => '14:00', 'preparation_minutes' => '', 'interval_minutes' => '20'),
+        array('day' => 'mon', 'from' => '15:00', 'to' => '16:00', 'preparation_minutes' => '', 'interval_minutes' => ''),
+    )),
+);
+ds_save_preparation_windows();
+expect_same(array(array('from' => '09:00', 'to' => '12:00', 'minutes' => 35, 'day' => 'mon')), get_option('delay_time_windows'), 'Save only the filled preparation cell');
+expect_same(array(array('from' => '13:00', 'to' => '14:00', 'minutes' => 20, 'day' => 'mon')), get_option('dsmart_delivery_time_step_windows'), 'Save only the filled interval cell');
 echo "Preparation-time regression checks passed.\n";
