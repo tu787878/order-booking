@@ -290,9 +290,10 @@ span.day-of-week{
 #tab-4 .ds-preparation-table th:nth-child(2), #tab-4 .ds-preparation-table th:nth-child(3) { width: 15%; }
 #tab-4 .ds-preparation-table th:nth-child(4) { width: 30%; }
 #tab-4 .ds-preparation-table th:nth-child(5) { width: 22%; }
+#tab-4 .ds-service-preparation-table { min-width: 760px; }
 #tab-4 .ds-service-preparation-table th:nth-child(1) { width: 18%; }
-#tab-4 .ds-service-preparation-table th:nth-child(2), #tab-4 .ds-service-preparation-table th:nth-child(3) { width: 14%; }
-#tab-4 .ds-service-preparation-table th:nth-child(4), #tab-4 .ds-service-preparation-table th:nth-child(5) { width: 20%; }
+#tab-4 .ds-service-preparation-table th:nth-child(2), #tab-4 .ds-service-preparation-table th:nth-child(3) { width: 16%; }
+#tab-4 .ds-service-preparation-table th:nth-child(4), #tab-4 .ds-service-preparation-table th:nth-child(5) { width: 18%; }
 #tab-4 .ds-service-preparation-table th:nth-child(6) { width: 14%; }
 #tab-4 .ds-preparation-table input, #tab-4 .ds-preparation-table select { width: 100%; min-width: 0; box-sizing: border-box; }
 #tab-4 .ds-preparation-table .button { padding: 0 7px; font-size: 11px; }

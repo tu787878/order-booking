@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.22
+- Widened special time-window columns so complete times remain visible.
+
 ## 1.8.21
 - Prevent all delivery or pickup card actions, including row deletion, while that service is off.
 
