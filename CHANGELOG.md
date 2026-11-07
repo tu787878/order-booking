@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.21
+- Prevent all delivery or pickup card actions, including row deletion, while that service is off.
+
 ## 1.8.20
 - Visually disable the full delivery or pickup settings card when its service is turned off.
 

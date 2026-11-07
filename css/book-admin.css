@@ -265,7 +265,7 @@ span.day-of-week{
 #tab-4 .ds-service-card { min-width: 0; padding: 16px; border: 1px solid #e5e7eb; border-radius: 6px; background: #fafafa; display: flow-root; }
 #tab-4 .ds-service-card.ds-service-disabled { opacity: .45; cursor: not-allowed; }
 #tab-4 .ds-service-card.ds-service-disabled * { cursor: not-allowed !important; }
-#tab-4 .ds-service-card.ds-service-disabled details > summary { pointer-events: none; }
+#tab-4 .ds-service-card.ds-service-disabled * { pointer-events: none; }
 #tab-4 .ds-service-card > h3 { margin: 0 0 18px; font-size: 15px; }
 #tab-4 .ds-service-card .form-group { float: none; width: auto; margin: 0 0 18px; }
 #tab-4 .ds-service-card h4 { margin: 0 0 8px; font-size: 13px; }

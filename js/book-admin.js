@@ -50,6 +50,7 @@ jQuery(document).ready(function($){
 		const $sections = $(selectors.join(","));
 		$sections.toggleClass("ds-service-disabled", disabled).attr("aria-disabled", disabled ? "true" : "false");
 		$sections.find("input, select, textarea, button").prop("disabled", disabled);
+		$sections.find(".button, [role=button]").attr("aria-disabled", disabled ? "true" : "false");
 	};
 	const updateServiceSettings = () => {
 		setServiceSettingsDisabled(serviceSettings.delivery, !$('input[name="dsmart_method_ship"]').prop("checked"));
