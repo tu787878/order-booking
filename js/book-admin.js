@@ -167,7 +167,10 @@ jQuery(document).ready(function($){
 	       }
 	    });
 	}
-	$('.timepicker').timepicker({ 'timeFormat': 'H:i' });
+	$('.timepicker, .ds-service-time-input').timepicker({ 'timeFormat': 'H:i' });
+	$(document).on('ds-service-time-window-added', function(event) {
+		$(event.originalEvent.detail).find('.ds-service-time-input').timepicker({ 'timeFormat': 'H:i' });
+	});
 	$('.datepicker').datepicker({
 		changeYear: true, 
 		dateFormat: 'dd-mm-yy',

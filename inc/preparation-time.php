@@ -257,6 +257,7 @@ function ds_render_service_preparation_windows($service)
                 });
                 container.querySelector('[data-preparation-rows]').appendChild(row);
                 container.setAttribute('data-next-index', index + 1);
+                document.dispatchEvent(new CustomEvent('ds-service-time-window-added', { detail: row }));
             }
             container.closest('.ds-window-editor').querySelector('.ds-window-count').textContent = container.querySelectorAll('[data-preparation-rows] > [data-preparation-row]').length;
         });
@@ -295,7 +296,7 @@ function ds_render_service_preparation_window_row($service, $index, $window)
             <?php } ?>
         </select></td>
         <?php foreach (array('from' => 'Von', 'to' => 'Bis') as $field => $label) { $name = $base . '[' . $field . ']'; ?>
-            <td><input aria-label="<?php echo esc_attr__($label, 'dsmart'); ?>" type="time" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($window[$field]); ?>"></td>
+            <td><input aria-label="<?php echo esc_attr__($label, 'dsmart'); ?>" type="text" class="ds-service-time-input" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr($window[$field]); ?>" autocomplete="off"></td>
         <?php } ?>
         <?php foreach (array('preparation_minutes' => 'Bearbeitungszeit (Minuten)', 'interval_minutes' => 'Zeitabstand (Minuten)') as $field => $label) { $name = $base . '[' . $field . ']'; ?>
             <td><input aria-label="<?php echo esc_attr__($label, 'dsmart'); ?>" type="number" min="<?php echo $field === 'interval_minutes' ? '1' : '0'; ?>" max="1440" step="1" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr(isset($window[$field]) ? $window[$field] : ''); ?>"></td>

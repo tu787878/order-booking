@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.23
+- Use a 24-hour time picker for special delivery and pickup time windows.
+
 ## 1.8.22
 - Widened special time-window columns so complete times remain visible.
 
