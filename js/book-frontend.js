@@ -3146,6 +3146,7 @@ function dsPreparationStep(ranges, configuredStep, windows, selectedDay) {
   for (var minute = 1; minute < 1440; minute++) {
     var spacing = step, anchor = 0;
     (windows || []).some(function (window) {
+      if (window.active === false || window.active === 0 || window.active === "0") return false;
       if (window.day && window.day !== "all" && window.day !== selectedDay) return false;
       var start = toMinute(window.from), end = toMinute(window.to);
       var matches = start < end ? minute >= start && minute < end : minute >= start || minute < end;

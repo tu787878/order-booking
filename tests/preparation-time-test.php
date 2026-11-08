@@ -56,6 +56,8 @@ expect_same('45', at_clock('12:30'), 'Removing windows restores default');
 $GLOBALS['options']['delay_time_windows'] = array(array('day' => 'mon', 'from' => '12:00', 'to' => '14:00', 'minutes' => 25));
 expect_same(25, at_clock('12:30', 'delay_time', '2026-10-26'), 'Weekday window applies on Monday');
 expect_same('45', at_clock('12:30', 'delay_time', '2026-10-27'), 'Weekday window does not apply Tuesday');
+$GLOBALS['options']['delay_time_windows'] = array(array('from' => '12:00', 'to' => '14:00', 'minutes' => 25, 'active' => false));
+expect_same('45', at_clock('12:30'), 'Inactive window uses the default preparation time');
 $GLOBALS['options']['delay_time_windows'] = $windows;
 expect_same('45', ds_get_preparation_time('delay_time'), 'No implicit current-clock window lookup');
 function slot_blocked($ranges, $clock) {
@@ -64,6 +66,12 @@ function slot_blocked($ranges, $clock) {
 }
 $now = (new DateTimeImmutable('2026-11-02 09:00', new DateTimeZone('Europe/Berlin')))->getTimestamp();
 $opening = array(array('00:00', '12:00'), array('20:00', '24:00'));
+$GLOBALS['options']['delay_time_windows'] = array(array('from' => '12:00', 'to' => '14:00', 'minutes' => 25, 'active' => false));
+// The inactive 25-minute override leaves the 45-minute standard value in effect.
+$inactive_ranges = ds_preparation_closed_ranges($opening, 'delay_time', '03-11-2026', $now);
+expect_same(true, slot_blocked($inactive_ranges, '12:25'), 'Inactive window does not affect available slots');
+expect_same(false, slot_blocked($inactive_ranges, '12:45'), 'Inactive window retains the standard schedule');
+$GLOBALS['options']['delay_time_windows'] = $windows;
 $ranges = ds_preparation_closed_ranges($opening, 'delay_time', '03-11-2026', $now);
 expect_same(true, slot_blocked($ranges, '12:00'), 'Preparation blocks opening');
 expect_same(true, slot_blocked($ranges, '12:19'), 'Preparation blocks until twenty minutes');
@@ -97,17 +105,22 @@ $merged = ds_merge_service_preparation_windows(
     array(array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'minutes' => 35)),
     array(array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'minutes' => 20))
 );
-expect_same(array(array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'preparation_minutes' => 35, 'interval_minutes' => 20)), $merged, 'Matching windows merge into one row');
+expect_same(array(array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'preparation_minutes' => 35, 'interval_minutes' => 20, 'active' => true)), $merged, 'Matching windows merge into one row');
 $_POST = array(
     'ds_preparation_nonce' => 'valid',
     'ds_service_windows_present' => array('delivery' => 1),
     'ds_service_windows' => array('delivery' => array(
         array('day' => 'mon', 'from' => '09:00', 'to' => '12:00', 'preparation_minutes' => '35', 'interval_minutes' => ''),
         array('day' => 'mon', 'from' => '13:00', 'to' => '14:00', 'preparation_minutes' => '', 'interval_minutes' => '20'),
+        array('day' => 'mon', 'from' => '14:00', 'to' => '15:00', 'preparation_minutes' => '10', 'interval_minutes' => '', 'active' => '0'),
         array('day' => 'mon', 'from' => '15:00', 'to' => '16:00', 'preparation_minutes' => '', 'interval_minutes' => ''),
     )),
 );
 ds_save_preparation_windows();
-expect_same(array(array('from' => '09:00', 'to' => '12:00', 'minutes' => 35, 'day' => 'mon')), get_option('delay_time_windows'), 'Save only the filled preparation cell');
-expect_same(array(array('from' => '13:00', 'to' => '14:00', 'minutes' => 20, 'day' => 'mon')), get_option('dsmart_delivery_time_step_windows'), 'Save only the filled interval cell');
+expect_same(array(
+    array('from' => '09:00', 'to' => '12:00', 'minutes' => 35, 'active' => true, 'day' => 'mon'),
+    array('from' => '14:00', 'to' => '15:00', 'minutes' => 10, 'active' => false, 'day' => 'mon'),
+), get_option('delay_time_windows'), 'Inactive preparation row remains saved');
+expect_same(array(array('from' => '13:00', 'to' => '14:00', 'minutes' => 20, 'active' => true, 'day' => 'mon')), get_option('dsmart_delivery_time_step_windows'), 'Save only the filled interval cell');
+expect_same('45', at_clock('14:30', 'delay_time', '2026-10-26'), 'Saved inactive row remains inactive');
 echo "Preparation-time regression checks passed.\n";

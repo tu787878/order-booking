@@ -17,7 +17,12 @@ function ds_sanitize_preparation_windows($rows)
             !preg_match('/^[0-9]+$/D', (string) $row['minutes']) || (float) $row['minutes'] > 1440) {
             continue;
         }
-        $window = array('from' => $row['from'], 'to' => $row['to'], 'minutes' => (int) $row['minutes']);
+        $window = array(
+            'from' => $row['from'],
+            'to' => $row['to'],
+            'minutes' => (int) $row['minutes'],
+            'active' => !isset($row['active']) || (string) $row['active'] !== '0',
+        );
         if (isset($row['day'])) {
             if (!in_array($row['day'], array('all', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'), true)) continue;
             $window['day'] = $row['day'];
@@ -39,6 +44,7 @@ function ds_get_preparation_time($option, $timestamp = null)
     $clock = $now->format('H:i');
     $day = strtolower($now->format('D'));
     foreach (ds_sanitize_preparation_windows(get_option($option . '_windows')) as $window) {
+        if (isset($window['active']) && !$window['active']) continue;
         if (isset($window['day']) && $window['day'] !== 'all' && $window['day'] !== $day) continue;
         $matches = $window['from'] < $window['to']
             ? $clock >= $window['from'] && $clock < $window['to']
@@ -61,7 +67,8 @@ function ds_preparation_closed_ranges($ranges, $option, $date, $now = null)
     $selected_date = DateTimeImmutable::createFromFormat('!d-m-Y', $date, $zone);
     $selected_day = $selected_date ? strtolower($selected_date->format('D')) : 'all';
     $windows = array_values(array_filter($windows, function ($window) use ($selected_day) {
-        return !isset($window['day']) || $window['day'] === 'all' || $window['day'] === $selected_day;
+        return (!isset($window['active']) || $window['active']) &&
+            (!isset($window['day']) || $window['day'] === 'all' || $window['day'] === $selected_day);
     }));
     $to_minute = function ($clock) {
         $parts = explode(':', $clock);
@@ -150,6 +157,7 @@ function ds_sanitize_service_preparation_windows($rows)
             'to' => $row['to'],
             'preparation_minutes' => $prep === '' ? '' : (int) $prep,
             'interval_minutes' => $interval === '' ? '' : (int) $interval,
+            'active' => !isset($row['active']) || (string) $row['active'] !== '0',
         );
     }
     return $windows;
@@ -165,7 +173,7 @@ function ds_merge_service_preparation_windows($preparation_windows, $interval_wi
             $key = $day . '|' . $window['from'] . '|' . $window['to'];
             if (!isset($indexes[$key])) {
                 $indexes[$key] = count($merged);
-                $merged[] = array('day' => $day, 'from' => $window['from'], 'to' => $window['to'], 'preparation_minutes' => '', 'interval_minutes' => '');
+                $merged[] = array('day' => $day, 'from' => $window['from'], 'to' => $window['to'], 'preparation_minutes' => '', 'interval_minutes' => '', 'active' => !isset($window['active']) || $window['active']);
             }
             $field = $type === 'preparation' ? 'preparation_minutes' : 'interval_minutes';
             if ($merged[$indexes[$key]][$field] === '') {
@@ -205,10 +213,10 @@ function ds_save_preparation_windows()
             $intervals = array();
             foreach ($rows as $row) {
                 if ($row['preparation_minutes'] !== '') {
-                    $preparation[] = array('day' => $row['day'], 'from' => $row['from'], 'to' => $row['to'], 'minutes' => (string) $row['preparation_minutes']);
+                    $preparation[] = array('day' => $row['day'], 'from' => $row['from'], 'to' => $row['to'], 'minutes' => (string) $row['preparation_minutes'], 'active' => $row['active']);
                 }
                 if ($row['interval_minutes'] !== '') {
-                    $intervals[] = array('day' => $row['day'], 'from' => $row['from'], 'to' => $row['to'], 'minutes' => (string) $row['interval_minutes']);
+                    $intervals[] = array('day' => $row['day'], 'from' => $row['from'], 'to' => $row['to'], 'minutes' => (string) $row['interval_minutes'], 'active' => $row['active']);
                 }
             }
             update_option($options[0] . '_windows', ds_sanitize_preparation_windows($preparation), 'yes');
@@ -273,12 +281,12 @@ function ds_render_service_preparation_windows($service)
             <p class="ds-settings-hint">Leere Werte werden nicht überschrieben; außerhalb des Zeitfensters gilt der Standardwert.</p>
             <details class="ds-window-help"><summary>Hinweise</summary><p>Beginn inklusive, Ende exklusive. Zeitfenster können über Mitternacht gehen. Zeiten gelten in Europe/Berlin; bei Überschneidungen gilt der erste passende Eintrag.</p></details>
             <div class="ds-preparation-table-wrap"><table class="widefat striped ds-preparation-table ds-service-preparation-table">
-                <thead><tr><th>Tag</th><th>Von</th><th>Bis</th><th>Bearbeitungszeit<br>(Minuten)</th><th>Zeitabstand<br>(Minuten)</th><th>Aktion</th></tr></thead>
+            <thead><tr><th>Tag</th><th>Von</th><th>Bis</th><th>Bearbeitungszeit<br>(Minuten)</th><th>Zeitabstand<br>(Minuten)</th><th>Aktiv</th><th>Aktion</th></tr></thead>
                 <tbody data-preparation-rows>
                 <?php foreach ($windows as $index => $window) ds_render_service_preparation_window_row($service, $index, $window); ?>
                 </tbody>
             </table></div>
-            <template><table><tbody><?php ds_render_service_preparation_window_row($service, '__INDEX__', array('day' => 'all', 'from' => '', 'to' => '', 'preparation_minutes' => '', 'interval_minutes' => '')); ?></tbody></table></template>
+            <template><table><tbody><?php ds_render_service_preparation_window_row($service, '__INDEX__', array('day' => 'all', 'from' => '', 'to' => '', 'preparation_minutes' => '', 'interval_minutes' => '', 'active' => true)); ?></tbody></table></template>
             <button type="button" class="button" data-preparation-add>Zeitfenster hinzufügen</button>
         </div>
     </details>
@@ -301,6 +309,8 @@ function ds_render_service_preparation_window_row($service, $index, $window)
         <?php foreach (array('preparation_minutes' => 'Bearbeitungszeit (Minuten)', 'interval_minutes' => 'Zeitabstand (Minuten)') as $field => $label) { $name = $base . '[' . $field . ']'; ?>
             <td><input aria-label="<?php echo esc_attr__($label, 'dsmart'); ?>" type="number" min="<?php echo $field === 'interval_minutes' ? '1' : '0'; ?>" max="1440" step="1" name="<?php echo esc_attr($name); ?>" data-name="<?php echo esc_attr($name); ?>" value="<?php echo esc_attr(isset($window[$field]) ? $window[$field] : ''); ?>"></td>
         <?php } ?>
+        <?php $active_name = $base . '[active]'; $active = !isset($window['active']) || $window['active']; ?>
+        <td class="ds-service-window-active"><input type="hidden" name="<?php echo esc_attr($active_name); ?>" data-name="<?php echo esc_attr($active_name); ?>" value="0"><label><input aria-label="Aktiv" type="checkbox" name="<?php echo esc_attr($active_name); ?>" data-name="<?php echo esc_attr($active_name); ?>" value="1" <?php checked($active); ?>> Aktiv</label></td>
         <td><button type="button" class="button" data-preparation-remove>Entfernen</button></td>
     </tr>
     <?php
