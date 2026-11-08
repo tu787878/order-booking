@@ -290,21 +290,12 @@ span.day-of-week{
 #tab-4 .ds-preparation-table th:nth-child(2), #tab-4 .ds-preparation-table th:nth-child(3) { width: 15%; }
 #tab-4 .ds-preparation-table th:nth-child(4) { width: 30%; }
 #tab-4 .ds-preparation-table th:nth-child(5) { width: 22%; }
-#tab-4 .ds-preparation-table-wrap:has(.ds-service-preparation-table) { overflow-x: visible; }
-#tab-4 .ds-service-preparation-table { display: block; table-layout: auto; }
-#tab-4 .ds-service-preparation-table thead { display: none; }
-#tab-4 .ds-service-preparation-table tbody { display: block; }
-#tab-4 .ds-service-preparation-table tr[data-preparation-row] { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; padding: 12px; border: 1px solid #dcdcde; border-radius: 4px; background: #fff; }
-#tab-4 .ds-service-preparation-table tr[data-preparation-row] + tr[data-preparation-row] { margin-top: 10px; }
-#tab-4 .ds-service-preparation-table td { display: block; padding: 0; min-width: 0; border: 0; }
-#tab-4 .ds-service-preparation-table td::before { display: block; margin: 0 0 4px; font-size: 12px; font-weight: 600; color: #50575e; }
-#tab-4 .ds-service-preparation-table td:nth-child(1)::before { content: "Tag"; }
-#tab-4 .ds-service-preparation-table td:nth-child(2)::before { content: "Von"; }
-#tab-4 .ds-service-preparation-table td:nth-child(3)::before { content: "Bis"; }
-#tab-4 .ds-service-preparation-table td:nth-child(4)::before { content: "Bearbeitungszeit (Minuten)"; }
-#tab-4 .ds-service-preparation-table td:nth-child(5)::before { content: "Zeitabstand (Minuten)"; }
-#tab-4 .ds-service-preparation-table td:nth-child(6)::before { content: "Aktiv"; }
-#tab-4 .ds-service-preparation-table td:nth-child(7)::before { content: "Aktion"; }
+#tab-4 .ds-time-service-grid { grid-template-columns: 1fr; }
+#tab-4 .ds-service-preparation-table { min-width: 900px; }
+#tab-4 .ds-service-preparation-table th:nth-child(1) { width: 16%; }
+#tab-4 .ds-service-preparation-table th:nth-child(2), #tab-4 .ds-service-preparation-table th:nth-child(3) { width: 15%; }
+#tab-4 .ds-service-preparation-table th:nth-child(4), #tab-4 .ds-service-preparation-table th:nth-child(5) { width: 17%; }
+#tab-4 .ds-service-preparation-table th:nth-child(6), #tab-4 .ds-service-preparation-table th:nth-child(7) { width: 10%; }
 #tab-4 .ds-preparation-table input, #tab-4 .ds-preparation-table select { width: 100%; min-width: 0; box-sizing: border-box; }
 #tab-4 .ds-preparation-table .ds-service-window-active input { width: auto; }
 #tab-4 .ds-preparation-table .ds-service-window-active label { white-space: nowrap; }
@@ -336,5 +327,4 @@ span.day-of-week{
   #tab-4 .ds-settings-panel-body { padding: 12px; }
   #tab-4 .ds-service-card { padding: 12px; }
   #tab-4 .ds-time-special-grid { grid-template-columns: 1fr; }
-  #tab-4 .ds-service-preparation-table tr[data-preparation-row] { grid-template-columns: 1fr; }
 }

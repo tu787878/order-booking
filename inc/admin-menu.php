@@ -1301,7 +1301,7 @@ function general_booking_setting()
 					<input type='button' class="button-primary" value="<?php esc_attr_e('Bild aussuchen', 'dsmart'); ?>" id="myprefix_media_manager_popup_homepage"/>
 				</div>
 				</div></details>
-<details class="ds-settings-panel" open><summary>Bearbeitungszeit &amp; Zeitabstand</summary><div class="ds-settings-panel-body"><p class="ds-settings-hint">Standardwerte gelten außerhalb der Sonderzeitfenster.</p><div class="ds-service-grid"><section class="ds-service-card" id="delivery_time_settings"><h3>Lieferung</h3>
+<details class="ds-settings-panel" open><summary>Bearbeitungszeit &amp; Zeitabstand</summary><div class="ds-settings-panel-body"><p class="ds-settings-hint">Standardwerte gelten außerhalb der Sonderzeitfenster.</p><div class="ds-service-grid ds-time-service-grid"><section class="ds-service-card" id="delivery_time_settings"><h3>Lieferung</h3>
 				<div class="ds-time-settings-section">	<h4>Standardwerte</h4><div class="ds-time-defaults">
 				<div id="delay_time_delivery" class="form-group"><label><?php _e('Bearbeitungszeit (Minuten)') ?><br><input type="number" name="delay_time" placeholder="<?php _e("Please enter your time which you want to delay(minutes)"); ?>" value="<?php echo $delay_time; ?>" /></label></div>
 				<div id="time_delivery_step" class="form-group"><label><?php _e('Zeitabstand (Minuten)') ?><br><input type="number" name="dsmart_delivery_time_step" value="<?php echo $dsmart_delivery_time_step; ?>" /></label></div>
