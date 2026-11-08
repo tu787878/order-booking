@@ -299,6 +299,9 @@ span.day-of-week{
 #tab-4 .ds-preparation-table input, #tab-4 .ds-preparation-table select { width: 100%; min-width: 0; box-sizing: border-box; }
 #tab-4 .ds-preparation-table .ds-service-window-active input { width: auto; }
 #tab-4 .ds-preparation-table .ds-service-window-active label { white-space: nowrap; }
+#tab-4 .ds-preparation-table .ds-service-window-active input[type=checkbox] { appearance: none; -webkit-appearance: none; display: inline-block; width: 18px; height: 18px; min-width: 18px; margin: 0 6px 0 0; vertical-align: -4px; border: 1px solid #8c8f94; border-radius: 3px; background: #fff; cursor: pointer; }
+#tab-4 .ds-preparation-table .ds-service-window-active input[type=checkbox]:checked { border-color: #2271b1; background: #2271b1; }
+#tab-4 .ds-preparation-table .ds-service-window-active input[type=checkbox]:checked::before { content: "✓"; display: block; width: auto; height: auto; margin: -2px 0 0; color: #fff; font-size: 15px; font-weight: 700; line-height: 18px; text-align: center; }
 #tab-4 .ds-preparation-table .button { padding: 0 7px; font-size: 11px; }
 #tab-4 .ds-window-help { margin-bottom: 12px; font-size: 12px; color: #646970; }
 #tab-4 .ds-window-help > summary { cursor: pointer; }
