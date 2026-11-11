@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.28
+- Added a customer-safe release packaging script and installation guide.
+- Added an admin page where a technician or customer can save a per-site update-access token without embedding it in the distributed ZIP.
+
 ## 1.8.27
 - Fixed the active time-window checkbox appearance.
 
