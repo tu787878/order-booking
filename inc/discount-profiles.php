@@ -74,55 +74,150 @@ function ds_save_discount_profiles()
 function ds_render_discount_profile($index, $profile)
 {
     $prefix = 'ds_discount_profiles[' . $index . ']';
-    $input = function ($key, $label, $type = 'text') use ($prefix, $profile) {
-        echo '<label style="display:block;margin:8px 0">' . esc_html($label) . ' <input type="' . esc_attr($type) . '" name="' . esc_attr($prefix . '[' . $key . ']') . '" value="' . esc_attr($profile[$key] ?? '') . '"' . ($type === 'date' ? ' required' : '') . ($type === 'number' ? ' min="0" step="0.01"' : '') . '></label>';
+    $field = function ($key, $type = 'text', $attributes = '') use ($prefix, $profile) {
+        echo '<input class="widefat" type="' . esc_attr($type) . '" name="' . esc_attr($prefix . '[' . $key . ']') . '" value="' . esc_attr($profile[$key] ?? '') . '" ' . $attributes . '>';
     };
-    echo '<details open class="ds-discount-profile" style="border:1px solid #ccd0d4;padding:12px;margin:12px 0"><summary><strong>Eigene Rabatt-Konfiguration</strong></summary>';
-    $input('name', 'Name'); $input('from', 'Von (einschließlich)', 'date'); $input('to', 'Bis (einschließlich)', 'date');
-    $input('discount_min', 'Mindestbestellwert', 'number');
+    echo '<details open class="ds-discount-profile"><summary><strong>Eigene Rabatt-Konfiguration</strong></summary><div class="form-group"><h2>Name</h2>';
+    $field('name');
+    echo '</div><div class="form-group"><h2>Gültigkeit</h2><label>Von ';
+    $field('from', 'date', 'required');
+    echo '</label><label>Bis ';
+    $field('to', 'date', 'required');
+    echo '</label></div><div class="form-group"><h2>Direkter Rabatt Abzug</h2><div class="radio-wrap">';
+    foreach (array('discount_cod' => 'Lieferung', 'discount_shop' => 'Abholung') as $key => $label) {
+        echo '<label><input class="ds-discount-service" type="checkbox" name="' . esc_attr($prefix . '[' . $key . ']') . '" data-service="' . esc_attr($key) . '" value="on" ' . checked($profile[$key] ?? '', 'on', false) . '> ' . esc_html($label) . '</label>';
+    }
+    echo '</div></div><div class="form-group"><h2>Mindestbestellwert (für direkt Rabatt)</h2>';
+    $field('discount_min', 'number', 'min="0" step="0.01"');
+    echo '</div>';
     foreach (array('' => array('Lieferung', 'discount_cod'), '_2' => array('Abholung', 'discount_shop')) as $suffix => $service) {
-        echo '<h3>' . esc_html($service[0]) . '</h3><label><input type="checkbox" name="' . esc_attr($prefix . '[' . $service[1] . ']') . '" value="on" ' . checked($profile[$service[1]] ?? '', 'on', false) . '> Rabatt aktivieren</label>';
-        echo '<p><select name="' . esc_attr($prefix . '[type_promotion' . $suffix . ']') . '"><option value="%" ' . selected($profile['type_promotion' . $suffix] ?? '%', '%', false) . '>Prozente</option><option value="number" ' . selected($profile['type_promotion' . $suffix] ?? '', 'number', false) . '>Fester Betrag</option></select></p>';
-        $input('promotion' . $suffix, 'Rabattwert', 'number');
-        foreach (array('mo' => 'Montag', 'tu' => 'Dienstag', 'we' => 'Mittwoch', 'th' => 'Donnerstag', 'fr' => 'Freitag', 'sa' => 'Samstag', 'su' => 'Sonntag') as $day => $label) $input('time_discount_shop' . $suffix . '_' . $day, $label);
+        $hidden = ($profile[$service[1]] ?? '') === 'on' ? '' : ' hidden';
+        echo '<div class="form-group ds-discount-service-fields" data-service="' . esc_attr($service[1]) . '"' . $hidden . '><h2>Rabatt ' . esc_html($service[0]) . '</h2><div class="radio-wrap">';
+        foreach (array('%' => 'Prozente', 'number' => 'Nummer') as $value => $label) {
+            echo '<label><input type="radio" name="' . esc_attr($prefix . '[type_promotion' . $suffix . ']') . '" value="' . esc_attr($value) . '" ' . checked($profile['type_promotion' . $suffix] ?? '%', $value, false) . '> ' . esc_html($label) . '</label>';
+        }
+        echo '</div>';
+        $field('promotion' . $suffix, 'number', 'min="0" step="0.01"');
+        echo '</div><div class="form-group timepicker-group ds-discount-service-fields" data-service="' . esc_attr($service[1]) . '"' . $hidden . '><h4>Rabattzeit ' . esc_html($service[0]) . '</h4>';
+        foreach (array('mo' => 'Montag', 'tu' => 'Dienstag', 'we' => 'Mittwoch', 'th' => 'Donnerstag', 'fr' => 'Freitag', 'sa' => 'Samstag', 'su' => 'Sonntag') as $day => $label) {
+            echo '<label class="ds-discount-time-row"><span class="day-of-week">' . esc_html($label) . ':</span>';
+            $field('time_discount_shop' . $suffix . '_' . $day, 'text', 'data-discount-times placeholder="Gültige Rabattzeiten" autocomplete="off"');
+            echo ' <button type="button" class="button button-primary ds-discount-add-time">Rabatt Zeit einfügen</button></label>';
+        }
+        echo '</div>';
     }
     $lines = array();
+    echo '<div class="form-group ds-discount-special"><h4>Benutzerdefinierte Rabatt Zeit</h4><table class="table"><thead><tr><th>Datum</th><th>Rabatt Zeit</th><th>Zeit hinzufügen</th><th>Aktion</th></tr></thead><tbody>';
     foreach (($profile['dsmart_custom_discount_date'] ?? array()) as $exception) {
         $date = DateTimeImmutable::createFromFormat('!d-m-Y', $exception['date']);
-        if ($date) $lines[] = $date->format('Y-m-d') . ' | ' . $exception['time'];
+        if (!$date) continue;
+        $lines[] = $date->format('Y-m-d') . ' | ' . $exception['time'];
+        ds_render_discount_special_row($date->format('Y-m-d'), $exception['time']);
     }
-    echo '<p>Zeiten: HH:MM-HH:MM, mehrere Zeiträume mit Komma trennen. Leere Wochentage: kein Rabatt.</p><label>Sondertage (ersetzen die Wochenzeiten für Lieferung und Abholung):<br><textarea rows="4" class="widefat" name="' . esc_attr($prefix . '[special_dates]') . '" placeholder="2026-12-24 | 12:00-14:00,18:00-20:00">' . esc_textarea(implode("\n", $lines)) . '</textarea></label><p><button type="button" class="button ds-delete-discount">Konfiguration löschen</button></p></details>';
+    echo '</tbody></table><button type="button" class="button ds-discount-add-date">Rabatt Zeit einfügen</button><input type="hidden" data-discount-special-values name="' . esc_attr($prefix . '[special_dates]') . '" value="' . esc_attr(implode("\n", $lines)) . '"></div><p><button type="button" class="button ds-delete-discount">Konfiguration löschen</button></p></details>';
+}
+
+function ds_render_discount_special_row($date = '', $times = '')
+{
+    echo '<tr class="ds-discount-time-row"><td><input class="widefat" type="date" data-discount-special-date value="' . esc_attr($date) . '" required></td><td><input type="text" class="widefat" data-discount-times value="' . esc_attr($times) . '" required></td><td><button type="button" class="button button-primary ds-discount-add-time">Neue Gültige Rabattzeiten</button></td><td><button type="button" class="button ds-discount-delete-date">Löschen</button></td></tr>';
 }
 
 function ds_render_discount_profiles()
 {
     wp_nonce_field('ds_discount_profiles', 'ds_discount_profiles_nonce');
-    echo '<input type="hidden" name="ds_discount_profiles_present" value="1"><h2>Direkt Rabatt – Konfigurationen</h2><p>Ohne eigene Konfiguration gilt der Standard ohne Datumsbegrenzung. Sobald eine eigene Konfiguration existiert, wird der Standard ignoriert – auch außerhalb der Datumsbereiche. Bei Überschneidungen gilt die erste passende Konfiguration. Datumsbereiche gelten einschließlich beider Tage (Europe/Berlin), bezogen auf den Bestellzeitpunkt.</p><div id="ds-discount-profiles">';
+    echo '<input type="hidden" name="ds_discount_profiles_present" value="1"><h2>Direkt Rabatt – Konfigurationen</h2><div id="ds-discount-profiles">';
     $profiles = get_option('ds_discount_profiles');
     foreach (is_array($profiles) ? $profiles : array() as $index => $profile) ds_render_discount_profile($index, $profile);
-    echo '</div><button type="button" class="button" id="ds-add-discount">Rabatt-Konfiguration hinzufügen</button><p>Änderungen mit dem Speichern-Button dieser Seite übernehmen.</p><template id="ds-discount-template">';
+    echo '</div><button type="button" class="button" id="ds-add-discount">Rabatt-Konfiguration hinzufügen</button><template id="ds-discount-template">';
     ds_render_discount_profile('__INDEX__', array());
+    echo '</template><template id="ds-discount-date-template">';
+    ds_render_discount_special_row();
     echo '</template>';
     ?>
+    <style>
+    .ds-discount-profile { display: flow-root; border: 1px solid #ccd0d4; padding: 12px; margin: 12px 0; }
+    .ds-discount-profile > p { clear: both; }
+    .ds-discount-profile [hidden] { display: none !important; }
+    .ds-discount-profile .ds-discount-special table { width: auto; }
+    .ds-discount-profile .ds-discount-special th { width: 200px; }
+    .ds-discount-default { border: 0; padding: 0; margin: 0; min-width: 0; display: flow-root; width: 100%; }
+    .ds-discount-default:disabled { opacity: .5; pointer-events: none; }
+    .ds-discount-default:disabled a { pointer-events: none; }
+    #ds-discount-time-dialog { border: 1px solid #ccd0d4; padding: 24px; }
+    #ds-discount-time-dialog::backdrop { background: rgba(0,0,0,.3); }
+    </style>
+    <dialog id="ds-discount-time-dialog"><h4>Rabattzeit hinzufügen</h4><input type="time" data-time-from required> <input type="time" data-time-to required><p><button type="button" class="button button-primary" data-time-save>Ok</button> <button type="button" class="button" data-time-cancel>Schließen</button></p></dialog>
     <script>
     (function () {
         var list = document.getElementById('ds-discount-profiles');
         var next = list.children.length;
+        var form = list.closest('form');
+        var dialog = document.getElementById('ds-discount-time-dialog');
+        document.body.appendChild(dialog);
+        var target = null;
+        function updateDefault() {
+            form.querySelectorAll('.ds-discount-default').forEach(function (fieldset) {
+                fieldset.disabled = list.children.length > 0;
+                fieldset.inert = list.children.length > 0;
+            });
+        }
+        function syncDates(panel) {
+            var lines = [];
+            panel.querySelectorAll('.ds-discount-special tbody tr').forEach(function (row) {
+                lines.push(row.querySelector('[data-discount-special-date]').value + ' | ' + row.querySelector('[data-discount-times]').value);
+            });
+            panel.querySelector('[data-discount-special-values]').value = lines.join('\n');
+        }
         document.getElementById('ds-add-discount').addEventListener('click', function () {
             list.insertAdjacentHTML('beforeend', document.getElementById('ds-discount-template').innerHTML.replace(/__INDEX__/g, String(next++)));
+            updateDefault();
+        });
+        list.addEventListener('input', function (event) { syncDates(event.target.closest('.ds-discount-profile')); });
+        list.addEventListener('change', function (event) {
+            if (event.target.classList.contains('ds-discount-service')) {
+                event.target.closest('.ds-discount-profile').querySelectorAll('.ds-discount-service-fields').forEach(function (group) {
+                    if (group.dataset.service === event.target.dataset.service) group.hidden = !event.target.checked;
+                });
+            }
         });
         list.addEventListener('click', function (event) {
-            if (event.target.classList.contains('ds-delete-discount')) event.target.closest('.ds-discount-profile').remove();
+            var panel = event.target.closest('.ds-discount-profile');
+            if (!panel) return;
+            if (event.target.classList.contains('ds-delete-discount')) { panel.remove(); updateDefault(); }
+            if (event.target.classList.contains('ds-discount-add-date')) panel.querySelector('tbody').insertAdjacentHTML('beforeend', document.getElementById('ds-discount-date-template').innerHTML);
+            if (event.target.classList.contains('ds-discount-delete-date')) { event.target.closest('tr').remove(); syncDates(panel); }
+            if (event.target.classList.contains('ds-discount-add-time')) {
+                target = event.target.closest('.ds-discount-time-row').querySelector('[data-discount-times]');
+                dialog.querySelectorAll('input').forEach(function (input) { input.value = ''; });
+                dialog.showModal();
+            }
         });
-        list.closest('form').addEventListener('submit', function (event) {
+        dialog.querySelector('[data-time-cancel]').addEventListener('click', function () { dialog.close(); });
+        dialog.querySelector('[data-time-save]').addEventListener('click', function () {
+            var from = dialog.querySelector('[data-time-from]');
+            var to = dialog.querySelector('[data-time-to]');
+            if (!from.reportValidity() || !to.reportValidity()) return;
+            var range = from.value + '-' + to.value;
+            target.value = target.value.trim() ? target.value.trim() + ',' + range : range;
+            syncDates(target.closest('.ds-discount-profile'));
+            dialog.close();
+        });
+        // The default fieldset follows this script in the page markup.
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', updateDefault);
+        else updateDefault();
+        form.addEventListener('submit', function (event) {
             var valid = true;
             list.querySelectorAll('.ds-discount-profile').forEach(function (panel) {
+                syncDates(panel);
                 var from = panel.querySelector('input[name$="[from]"]');
                 var to = panel.querySelector('input[name$="[to]"]');
                 to.setCustomValidity(from.value > to.value ? 'Bis muss am oder nach dem Von-Datum liegen.' : '');
                 if (!from.checkValidity() || !to.checkValidity()) { panel.open = true; valid = false; }
             });
-            if (!valid) { event.preventDefault(); list.closest('form').reportValidity(); }
+            if (!valid) { event.preventDefault(); form.reportValidity(); return; }
+            // Disabled controls are not submitted. Restore them only for serialization.
+            form.querySelectorAll('.ds-discount-default').forEach(function (fieldset) { fieldset.disabled = false; });
+            setTimeout(updateDefault, 0);
         });
     })();
     </script>

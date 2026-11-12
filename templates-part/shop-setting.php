@@ -907,7 +907,7 @@ $total_order_in_date = (get_option('total_order_'.$current_date) != "") ? intval
 			<textarea name="dsmart_cart_text" rows="5" class="dsmart-field" placeholder="<?php _e('Cart custom text') ?>"><?php echo $dsmart_cart_text; ?></textarea>
 		</div>
         <?php ds_render_discount_profiles(); ?>
-        <details open><summary><strong>Standard-Rabatt (nicht löschbar, ohne Datumsbegrenzung)</strong></summary>
+        <details open><summary><strong>Standard-Rabatt (nicht löschbar, ohne Datumsbegrenzung)</strong></summary><fieldset class="ds-discount-default">
 		<h3 class="title-group"><?php _e('Rabatt (Shipping)'); ?></h3>
 		<div class="form-group">
 			<div class="radio-wrap">
@@ -1061,7 +1061,7 @@ $total_order_in_date = (get_option('total_order_'.$current_date) != "") ? intval
 			</table>
 			<span class="dsmart-button dsmart-add-new-row"><?php _e("Add new") ?></span>
 		</div>
-        </details>
+        </fieldset></details>
 		<h3 class="title-group"><?php _e('Weiter Einkaufen button link'); ?></h3>
 		<div class="form-group">			
 			<input type="text" class="dsmart-field" name="back_link_in_cart" value="<?php echo $back_link_in_cart; ?>"> 

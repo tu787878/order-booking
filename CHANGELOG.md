@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.32
+- Match custom discount settings to the default layout, with radio choices, weekday time buttons and special-date rows; remove explanatory text.
+- Lock default controls whenever a custom configuration exists, preserving saved default values and restoring editing after the last custom configuration is deleted.
+
 ## 1.8.31
 - Removed the customer update-token setup and authenticated-update changes; restored the previous updater behavior.
 - Removed release-build ignore rules. Discount configurations remain unchanged.
