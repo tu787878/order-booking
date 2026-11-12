@@ -17,6 +17,7 @@ function general_booking_setting()
 	date_default_timezone_set('Europe/Berlin');
 	$current_user = wp_get_current_user();
 	if (isset($_POST['dsmart-submit'])) {
+        ds_save_discount_profiles();
 			$dsmart_theme_style = $_POST['dsmart_theme_style'];
 			update_option('dsmart_theme_style', $dsmart_theme_style, 'yes');
 
@@ -1841,6 +1842,8 @@ function general_booking_setting()
 				</div>
 			</div>
 			<div class="tab-content" id="tab-7">
+                <?php ds_render_discount_profiles(); ?>
+                <details open><summary><strong>Standard-Rabatt (nicht löschbar, ohne Datumsbegrenzung)</strong></summary>
 				<div class="form-group">
 					<h2><?php echo __("Direkter Rabatt Abzug", "booking-order"); ?></h2>
 					<div class="radio-wrap">
@@ -2046,6 +2049,7 @@ function general_booking_setting()
 					</table>
 					<button type="button" class="button add-new-row"><?php _e("Rabatt Zeit einfügen") ?></button>
 				</div>
+                </details>
 			</div>
 			<div class="tab-content" id="tab-8">
 				<div class="form-group">

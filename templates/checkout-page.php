@@ -26,12 +26,12 @@ $dsmart_paypal 		= get_option('dsmart_paypal');
 $dsmart_klarna 		= get_option('dsmart_klarna');
 $dsmart_barzahlung	= (get_option('dsmart_barzahlung') != "") ? get_option('dsmart_barzahlung') : 'Barzahlung';
 if($shipping_info['shipping_method'] == "shipping"){
-	$type_promotion 	= get_option('type_promotion');	
-	$promotion 			= get_option('promotion');	
+	$type_promotion 	= ds_discount_option('type_promotion');
+	$promotion 			= ds_discount_option('promotion');
 	$has_discount = is_discount_time($shipping_info['delivery_time'],$shipping_info['delivery_date'],$shipping_info['shipping_method']);
 }else{
-	$type_promotion = get_option('type_promotion_2');	
-	$promotion = get_option('promotion_2');	
+	$type_promotion = ds_discount_option('type_promotion_2');
+	$promotion = ds_discount_option('promotion_2');
 	$has_discount = is_discount_time($shipping_info['time'],null,$shipping_info['shipping_method']);
 }
 $dsmart_custom_method = get_option('dsmart_custom_method');
@@ -234,7 +234,7 @@ get_header(); ?>
 						</tr>
 						<?php 
 						$reduce = 0;
-						$discount_min = get_option('discount_min');
+						$discount_min = ds_discount_option('discount_min');
 						if ($discount_min != '' && $discount_min != 0 && $discount_min != '0' && floatval($discount_min) > $total_all) {
 							$has_discount =false;
 							

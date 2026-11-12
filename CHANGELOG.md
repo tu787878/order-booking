@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.29
+- Added multiple dated direct-discount configurations with add/delete controls and independent delivery, pickup, minimum-order, weekly and special-date settings.
+- Preserve the undeletable default; custom configurations suppress it, including outside their inclusive Berlin-date ranges. First listed overlapping configuration takes priority.
+
 ## 1.8.28
 - Added a customer-safe release packaging script and installation guide.
 - Added an admin page where a technician or customer can save a per-site update-access token without embedding it in the distributed ZIP.

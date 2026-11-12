@@ -37,12 +37,12 @@ function get_shipping_fee()
 	$shipping_fee 			= 0;
 	$total_cart 			= ds_get_cart_total_item();
 	$total_cart_use_coupon  = ds_get_cart_total_item_use_coupon();
-	$type_promotion 		= get_option('type_promotion');
-	$promotion 				= get_option('promotion');
-	$type_promotion_2 		= get_option('type_promotion_2');
-	$promotion_2 			= get_option('promotion_2');
-	$discount_cod 			= get_option('discount_cod');
-	$discount_shop 			= get_option('discount_shop');
+	$type_promotion 		= ds_discount_option('type_promotion');
+	$promotion 				= ds_discount_option('promotion');
+	$type_promotion_2 		= ds_discount_option('type_promotion_2');
+	$promotion_2 			= ds_discount_option('promotion_2');
+	$discount_cod 			= ds_discount_option('discount_cod');
+	$discount_shop 			= ds_discount_option('discount_shop');
 	$tax_shipping 			= get_option('tax_shipping');
 	$check_zipcode 		    = (get_option('zipcode_status') == "on") ? true : false;
 	$has_reduce				= false;
@@ -140,7 +140,7 @@ function get_shipping_fee()
 							$total_all_use_coupon = $total_cart_use_coupon;
 							$reduce = '';
 							$reduce_percent = '';
-							$discount_min = get_option('discount_min');
+							$discount_min = ds_discount_option('discount_min');
 							if ($check_promotion == true && $promotion != null && $has_discount && $discount_cod == 'on' && floatval($discount_min) <= $total_all) :
 								$has_reduce	= true;
 								if ($type_promotion == '%') :
@@ -346,7 +346,7 @@ function get_shipping_fee()
 						$total_all_use_coupon = $total_cart_use_coupon;
 						$reduce = '';
 						$reduce_percent = '';
-						$discount_min = get_option('discount_min');
+						$discount_min = ds_discount_option('discount_min');
 						if ($check_promotion == true && $promotion != null && $has_discount && floatval($discount_min) <= $total_all) :
 							$has_reduce	= true;
 							if ($type_promotion == '%') :
@@ -472,7 +472,7 @@ function get_shipping_fee()
 				$total_all_use_coupon = $total_cart_use_coupon;
 				$reduce = '';
 				$reduce_percent = '';
-				$discount_min = get_option('discount_min');
+				$discount_min = ds_discount_option('discount_min');
 				if ($promotion_2 != null && $has_discount && floatval($discount_min) <= $total_all) :
 					$has_reduce			= true;
 					if ($type_promotion_2 == '%') :
@@ -987,11 +987,11 @@ function check_time_available()
 	$total_cart 			= ds_get_cart_total_item();
 	$total_cart_use_coupon 	= ds_get_cart_total_item_use_coupon();
 	$has_discount 			= is_discount_time($ztime, null, $method);
-	$type_promotion 		= get_option('type_promotion');
-	$promotion 				= get_option('promotion');
+	$type_promotion 		= ds_discount_option('type_promotion');
+	$promotion 				= ds_discount_option('promotion');
 
-	$type_promotion_2 		= get_option('type_promotion_2');
-	$promotion_2 			= get_option('promotion_2');
+	$type_promotion_2 		= ds_discount_option('type_promotion_2');
+	$promotion_2 			= ds_discount_option('promotion_2');
 	$vat 					= ds_get_vat_total_item();
 	$tax_shipping 		    = get_option('tax_shipping');
 	$shipping = 0;
@@ -1029,7 +1029,7 @@ function check_time_available()
 		}
 	}
 	
-	$discount_min = get_option('discount_min');
+	$discount_min = ds_discount_option('discount_min');
 	if ($discount_min != '' && $discount_min != 0 && $discount_min != '0' && floatval($discount_min) > $total_all) {
 		$has_discount = false;
 	}else{
@@ -1604,13 +1604,13 @@ function checkout_cart()
 			}
 			$total_all 			= $total_all;
 			if ($shipping_method == "shipping") {
-				$type_promotion 	= get_option('type_promotion');
-				$promotion = get_option('promotion');
+				$type_promotion 	= ds_discount_option('type_promotion');
+				$promotion = ds_discount_option('promotion');
 			} else {
-				$type_promotion 	= get_option('type_promotion_2');
-				$promotion = get_option('promotion_2');
+				$type_promotion 	= ds_discount_option('type_promotion_2');
+				$promotion = ds_discount_option('promotion_2');
 			}
-			$discount_min = get_option('discount_min');
+			$discount_min = ds_discount_option('discount_min');
 			if ($discount_min != '' && $discount_min != 0 && $discount_min != '0' && floatval($discount_min) > $total_all) {
 				$has_discount = false;
 			}else{
