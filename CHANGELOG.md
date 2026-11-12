@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.31
+- Removed the customer update-token setup and authenticated-update changes; restored the previous updater behavior.
+- Removed release-build ignore rules. Discount configurations remain unchanged.
+
 ## 1.8.30
 - Added direct-discount configuration management to the alternate shop settings form as well as the WordPress admin settings.
 

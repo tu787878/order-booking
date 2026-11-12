@@ -55,7 +55,6 @@ class Plugin_Updater {
             'github_user' => '',
             'github_repo' => '',
             'github_token' => '', // Optional, for private repos
-            'update_token' => '', // Optional bearer token for a private custom update server
             'update_url' => '', // For custom server
             'prefer' => 'github', // When type is 'both'
             'cache_time' => 12 * HOUR_IN_SECONDS, // 12 hours
@@ -318,17 +317,9 @@ class Plugin_Updater {
             return null;
         }
         
-        $args = [
+        $response = wp_remote_get($this->config['update_url'], [
             'timeout' => 10,
-        ];
-
-        if (!empty($this->config['update_token'])) {
-            $args['headers'] = [
-                'Authorization' => 'Bearer ' . $this->config['update_token'],
-            ];
-        }
-
-        $response = wp_remote_get($this->config['update_url'], $args);
+        ]);
         
         if (is_wp_error($response)) {
             return null;

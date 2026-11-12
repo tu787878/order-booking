@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.8.30
+ * Version: 1.8.31
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -12,17 +12,15 @@ date_default_timezone_set('Europe/Berlin');
 
 require_once BOOKING_ORDER_PATH2 . 'inc/preparation-time.php';
 require_once BOOKING_ORDER_PATH2 . 'inc/discount-profiles.php';
-require_once BOOKING_ORDER_PATH2 . 'inc/customer-setup.php';
 
 // Plugin configuration
 $plugin_config = [
-    'version' => '1.8.30',
+    'version' => '1.8.31',
     'plugin_file' => __FILE__,
     'plugin_dir' => plugin_dir_path(__FILE__),
     'plugin_url' => plugin_dir_url(__FILE__),
     'update_type' => 'custom',
     'update_url' => 'https://updates.tcg-marketing.de/wordpress-plugins/order-booking.json',
-    'update_token' => dsmart_get_update_access_token(),
 ];
 
 // Initialize auto-updater if configured
@@ -42,7 +40,6 @@ if (!empty($plugin_config['update_type'])) {
 
     if ($plugin_config['update_type'] === 'custom' || $plugin_config['update_type'] === 'both') {
         if (!empty($plugin_config['update_url'])) $updater_config['update_url'] = $plugin_config['update_url'];
-        if (!empty($plugin_config['update_token'])) $updater_config['update_token'] = $plugin_config['update_token'];
     }
 
     if ($plugin_config['update_type'] === 'both' && !empty($plugin_config['update_prefer'])) {
