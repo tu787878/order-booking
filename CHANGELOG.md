@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.30
+- Added direct-discount configuration management to the alternate shop settings form as well as the WordPress admin settings.
+
 ## 1.8.29
 - Added multiple dated direct-discount configurations with add/delete controls and independent delivery, pickup, minimum-order, weekly and special-date settings.
 - Preserve the undeletable default; custom configurations suppress it, including outside their inclusive Berlin-date ranges. First listed overlapping configuration takes priority.
