@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.8.18 (version reset)
+- Set the plugin version to 1.8.18 as requested; retain all current functionality.
+
 ## 1.8.32
 - Match custom discount settings to the default layout, with radio choices, weekday time buttons and special-date rows; remove explanatory text.
 - Lock default controls whenever a custom configuration exists, preserving saved default values and restoring editing after the last custom configuration is deleted.
