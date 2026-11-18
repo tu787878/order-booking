@@ -3,7 +3,7 @@
 /**
  * Plugin Name: TCG Restaurant Shop
  * Description: Restaurant Shop for delivery and take away
- * Version: 1.8.18
+ * Version: 1.8.19
  * License: GPLv2 or later
  */
 define('BOOKING_ORDER_PATH', plugin_dir_url(__FILE__));
@@ -11,11 +11,11 @@ define('BOOKING_ORDER_PATH2', plugin_dir_path(__FILE__));
 date_default_timezone_set('Europe/Berlin');
 
 require_once BOOKING_ORDER_PATH2 . 'inc/preparation-time.php';
-require_once BOOKING_ORDER_PATH2 . 'inc/discount-profiles.php';
+require_once BOOKING_ORDER_PATH2 . 'inc/discount-window.php';
 
 // Plugin configuration
 $plugin_config = [
-    'version' => '1.8.18',
+    'version' => '1.8.19',
     'plugin_file' => __FILE__,
     'plugin_dir' => plugin_dir_path(__FILE__),
     'plugin_url' => plugin_dir_url(__FILE__),
